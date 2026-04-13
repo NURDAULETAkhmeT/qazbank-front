@@ -333,7 +333,7 @@
       <div class="dash-breadcrumb">QazCorpBank / <span class="crumb-active" id="crumb-active">Главная</span></div>
       <div class="dash-topbar-right">
         <div class="dash-time" id="dash-clock">09:41</div>
-        <div class="topbar-btn" onclick="showPane('pane-notifications')">🔔<div class="tb-dot"></div></div>
+        <div class="topbar-btn" id="notif-bell" onclick="showPane('pane-notifications')" title="Уведомления" style="position:relative;">🔔<div class="tb-dot" id="notif-bell-dot"></div><span id="notif-bell-badge" style="display:none;position:absolute;top:1px;right:1px;min-width:16px;height:16px;background:var(--red);color:#fff;border-radius:8px;font-size:0.58rem;font-weight:800;align-items:center;justify-content:center;border:2px solid #fff;padding:0 2px;line-height:1;pointer-events:none;"></span></div>
         <div class="topbar-btn" onclick="showPane('pane-settings')">⚙️</div>
         <button class="btn btn-sm btn-outline" onclick="doLogout()">Выйти</button>
       </div>
@@ -354,14 +354,26 @@
                 <div><div class="acc-label">Основной счёт</div><div style="font-size:0.72rem;color:rgba(255,255,255,0.5)">KZT</div></div>
                 <span class="acc-type">РАСЧЁТНЫЙ</span>
               </div>
-              <div class="acc-iban">KZ89 125K ZT00 0001 2345 67</div>
-              <div class="acc-balance">₸ 248 750 000.00</div>
-              <div class="acc-currency">Казахстанский тенге · Доступно: ₸ 240 100 000</div>
+              <div class="acc-iban" id="main-acc-iban">KZ89 125K ZT00 0001 2345 67</div>
+              <div class="acc-balance" id="main-acc-balance">₸ 248 750 000.00</div>
+              <div class="acc-currency" id="main-acc-available">Казахстанский тенге · Доступно: ₸ 240 100 000</div>
               <div class="acc-actions">
                 <div class="acc-action" onclick="checkPerm('transfer','pane-transfer')">💸 Перевести</div>
                 <div class="acc-action" onclick="checkPerm('statements','pane-statements')">📄 Выписка</div>
                 <div class="acc-action">🔢 Реквизиты</div>
                 <div class="acc-action" onclick="checkPerm('analytics','pane-analytics')">📊 Аналитика</div>
+              </div>
+            </div>
+            <div class="card mb2" id="virtual-accounts-card">
+              <div class="card-header"><span class="card-title">Виртуальные счета</span></div>
+              <div class="card-body" style="padding:0;" id="virtual-account-list">
+                <div style="text-align:center;padding:2rem;color:var(--muted);">Загрузка виртуальных счетов...</div>
+              </div>
+            </div>
+            <div class="card mb2" id="pending-payments-card" style="display:none;">
+              <div class="card-header"><span class="card-title">Платёжные заявки</span><span class="badge badge-pending" id="pending-count">0</span></div>
+              <div class="card-body" style="padding:0;" id="pending-payment-list">
+                <div style="text-align:center;padding:2rem;color:var(--muted);">Нет заявок на подтверждение.</div>
               </div>
             </div>
             <div class="card">
@@ -409,11 +421,9 @@
               </div>
             </div>
             <div class="card">
-              <div class="card-header"><span class="card-title">Ожидают подтверждения</span><span class="badge badge-pending">3</span></div>
-              <div class="card-body" style="padding:0;">
-                <div style="padding:0.9rem 1.5rem;border-bottom:1px solid var(--light);display:flex;align-items:center;gap:0.75rem;"><span>💸</span><div style="flex:1"><div style="font-size:0.83rem;font-weight:700;">Платёж №2024-1847</div><div style="font-size:0.72rem;color:var(--muted);">ТОО «АлматыСтрой» · ₸4 200 000</div></div><span class="badge badge-pending">Ожидает</span></div>
-                <div style="padding:0.9rem 1.5rem;border-bottom:1px solid var(--light);display:flex;align-items:center;gap:0.75rem;"><span>🌍</span><div style="flex:1"><div style="font-size:0.83rem;font-weight:700;">SWIFT USD</div><div style="font-size:0.72rem;color:var(--muted);">DEUTSCHE BANK AG · $45 000</div></div><span class="badge badge-pending">Ожидает</span></div>
-                <div style="padding:0.9rem 1.5rem;display:flex;align-items:center;gap:0.75rem;"><span>👥</span><div style="flex:1"><div style="font-size:0.83rem;font-weight:700;">Зарплата · Июль</div><div style="font-size:0.72rem;color:var(--muted);">142 сотрудника · ₸38 500 000</div></div><span class="badge badge-pending">Ожидает</span></div>
+              <div class="card-header"><span class="card-title">Ожидают подтверждения</span><span class="badge badge-pending" id="dashboard-pending-count">0</span></div>
+              <div class="card-body" style="padding:0;" id="dashboard-pending-summary">
+                <div style="text-align:center;padding:2rem;color:var(--muted);">Нет заявок на подтверждение.</div>
               </div>
             </div>
           </div>
@@ -423,12 +433,8 @@
           <div class="tbl-wrap">
             <table class="tbl">
               <thead><tr><th>Дата</th><th>Описание</th><th>Контрагент</th><th>Статус</th><th>Сумма</th></tr></thead>
-              <tbody>
-                <tr><td>07.03.2026</td><td>Оплата поставщику</td><td>ТОО «КазМеталл»</td><td><span class="badge badge-active">Выполнен</span></td><td class="amt-neg">−₸12 450 000</td></tr>
-                <tr><td>07.03.2026</td><td>Поступление от клиента</td><td>АО «Ромат»</td><td><span class="badge badge-active">Выполнен</span></td><td class="amt-pos">+₸28 000 000</td></tr>
-                <tr><td>06.03.2026</td><td>Аренда офиса</td><td>ТОО «Офис-Центр»</td><td><span class="badge badge-active">Выполнен</span></td><td class="amt-neg">−₸3 200 000</td></tr>
-                <tr><td>06.03.2026</td><td>SWIFT-перевод</td><td>BARCLAYS BANK PLC</td><td><span class="badge badge-pending">В обработке</span></td><td class="amt-neg">−$85 000</td></tr>
-                <tr><td>05.03.2026</td><td>Зарплата март</td><td>142 сотрудника</td><td><span class="badge badge-active">Выполнен</span></td><td class="amt-neg">−₸38 500 000</td></tr>
+              <tbody id="latest-transactions-body">
+                <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:1rem;">Загрузка...</td></tr>
               </tbody>
             </table>
           </div>
@@ -450,25 +456,26 @@
                   <div class="tr-tab" onclick="setTab(this,'tr-tab')">🌍 SWIFT</div>
                   <div class="tr-tab" onclick="setTab(this,'tr-tab')">👥 Зарплата</div>
                 </div>
-                <div class="form-group"><label>Счёт списания <span class="req">*</span></label><select class="input"><option>KZ89125KZT000001234567 · ₸248 750 000</option><option>KZ89125USD000001 · $142 800</option></select></div>
-                <div class="form-group"><label>IBAN получателя <span class="req">*</span></label><div class="input-icon-wrap"><span class="i-icon">🔢</span><input class="input" placeholder="KZxx xxxx xxxx xxxx xxxx xx"></div></div>
+                <div class="form-group"><label>Счёт списания <span class="req">*</span></label><select class="input" id="payment-source-account"></select></div>
+                <div class="form-group"><label>IBAN получателя <span class="req">*</span></label><div class="input-icon-wrap"><span class="i-icon">🔢</span><input class="input" id="payment-recipient-iban" placeholder="KZxx xxxx xxxx xxxx xxxx xx"></div></div>
                 <div class="form-row">
-                  <div class="form-group"><label>БИН/ИИН получателя</label><input class="input" placeholder="123456789012"></div>
-                  <div class="form-group"><label>БИК банка</label><input class="input" value="KCJBKZKX"></div>
+                  <div class="form-group"><label>БИН/ИИН получателя</label><input class="input" id="payment-recipient-iin" placeholder="123456789012"></div>
+                  <div class="form-group"><label>БИК банка</label><input class="input" id="payment-bank" value="KCJBKZKX"></div>
                 </div>
-                <div class="form-group"><label>Наименование получателя <span class="req">*</span></label><input class="input" placeholder="ТОО «Название компании»"></div>
+                <div class="form-group"><label>Наименование получателя <span class="req">*</span></label><input class="input" id="payment-recipient-name" placeholder="ТОО «Название компании»"></div>
                 <div class="form-row">
-                  <div class="form-group"><label>Сумма <span class="req">*</span></label><div class="amount-wrap"><input class="input" type="number" placeholder="0.00"><span class="amount-curr">KZT</span></div></div>
-                  <div class="form-group"><label>Валюта</label><select class="input"><option>KZT</option><option>USD</option><option>EUR</option></select></div>
+                  <div class="form-group"><label>Сумма <span class="req">*</span></label><div class="amount-wrap"><input class="input" type="number" id="payment-amount" placeholder="0.00"><span class="amount-curr" id="payment-currency-label">KZT</span></div></div>
+                  <div class="form-group"><label>Валюта</label><select class="input" id="payment-currency"><option value="KZT">KZT</option><option value="USD">USD</option><option value="EUR">EUR</option></select></div>
                 </div>
-                <div class="form-group"><label>Назначение платежа <span class="req">*</span></label><input class="input" placeholder="Оплата по договору №..."></div>
-                <div class="form-group"><label>КНП</label><select class="input"><option>119 — Прочие платежи</option><option>111 — Оплата за товары</option><option>113 — Оплата услуг</option><option>171 — Зарплата</option></select></div>
-                <div class="form-group"><label>Дата платежа</label><input class="input" type="date" id="paydate"></div>
+                <div class="form-group"><label>Назначение платежа <span class="req">*</span></label><input class="input" id="payment-purpose" placeholder="Оплата по договору №..."></div>
+                <div class="form-group"><label>Тип операции</label><select class="input" id="payment-type"><option value="payment">Платёж</option><option value="salary">Зарплата</option><option value="swift">SWIFT</option><option value="income">Поступление</option></select></div>
+                <div class="form-group"><label>КНП</label><select class="input" id="payment-knp"><option value="119">119 — Прочие платежи</option><option value="111">111 — Оплата за товары</option><option value="113">113 — Оплата услуг</option><option value="171">171 — Зарплата</option></select></div>
+                <div class="form-group"><label>Дата платежа</label><input class="input" type="date" id="payment-date"></div>
                 <div class="alert alert-info" id="transfer-alert-info">🔐 Платежи свыше ₸10 000 000 требуют подтверждения Фин. директора</div>
                 <div class="alert alert-warning" id="transfer-alert-accountant" style="display:none;">⚠️ Платёж будет отправлен на <strong>подтверждение Директора</strong> перед исполнением.</div>
                 <div style="display:flex;gap:0.75rem;">
-                  <button class="btn btn-ghost btn-full">💾 Черновик</button>
-                  <button class="btn btn-primary btn-full" onclick="submitPayment()">💸 Отправить</button>
+                  <button class="btn btn-ghost btn-full" type="button" onclick="saveDraftPayment()">💾 Черновик</button>
+                  <button class="btn btn-primary btn-full" id="transfer-submit-btn" onclick="submitPayment()">💸 Отправить</button>
                 </div>
               </div>
             </div>
@@ -487,10 +494,8 @@
               <div class="tbl-wrap">
                 <table class="tbl">
                   <thead><tr><th>Получатель</th><th>Сумма</th><th>Статус</th></tr></thead>
-                  <tbody>
-                    <tr><td>ТОО «КазМеталл»</td><td class="amt-neg">−₸12.4M</td><td><span class="badge badge-active" style="font-size:0.62rem;">✓</span></td></tr>
-                    <tr><td>SWIFT: BARCLAYS</td><td class="amt-neg">−$85K</td><td><span class="badge badge-pending" style="font-size:0.62rem;">⏳</span></td></tr>
-                    <tr><td>Аренда офиса</td><td class="amt-neg">−₸3.2M</td><td><span class="badge badge-active" style="font-size:0.62rem;">✓</span></td></tr>
+                  <tbody id="transfer-history-body">
+                    <tr><td colspan="3" style="text-align:center;color:var(--muted);padding:1rem;">Загрузка истории...</td></tr>
                   </tbody>
                 </table>
               </div>
@@ -504,13 +509,14 @@
         <div class="pane-title">Выписки и история</div>
         <div class="pane-desc">Полная история операций по всем счетам компании.</div>
         <div class="card mb2">
-          <div class="card-header"><span class="card-title">Фильтры</span><button class="btn btn-primary btn-sm" onclick="showToast('info','Формируется выписка','PDF будет готов через несколько секунд')">📥 Скачать PDF</button></div>
+          <div class="card-header"><span class="card-title">Фильтры</span><div style="display:flex;gap:0.5rem;flex-wrap:wrap"><button class="btn btn-primary btn-sm" onclick="exportStatementPDF()">📥 Скачать PDF</button><button class="btn btn-sm btn-outline" onclick="exportStatementExcel()">📄 Excel</button></div></div>
           <div class="card-body">
             <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;align-items:end;">
-              <div class="form-group" style="margin-bottom:0;"><label>Счёт</label><select class="input"><option>Все счета</option><option>KZT</option><option>USD</option></select></div>
-              <div class="form-group" style="margin-bottom:0;"><label>С</label><input class="input" type="date" value="2026-02-01"></div>
-              <div class="form-group" style="margin-bottom:0;"><label>По</label><input class="input" type="date" value="2026-03-07"></div>
-              <button class="btn btn-primary">🔍 Применить</button>
+              <div class="form-group" style="margin-bottom:0;"><label>Счёт</label><select class="input" id="statement-account"><option value="all">Все счета</option><option value="main">Основной счёт</option><option value="va-1">Закупки</option><option value="va-2">Маркетинг</option><option value="va-3">Операции</option></select></div>
+              <div class="form-group" style="margin-bottom:0;"><label>Тип</label><select class="input" id="statement-type"><option value="all">Все операции</option><option value="payment">Платёж</option><option value="income">Поступление</option><option value="salary">Зарплата</option><option value="swift">SWIFT</option><option value="reversal">Возврат</option></select></div>
+              <div class="form-group" style="margin-bottom:0;"><label>С</label><input class="input" type="date" id="statement-from"></div>
+              <div class="form-group" style="margin-bottom:0;"><label>По</label><input class="input" type="date" id="statement-to"></div>
+              <button class="btn btn-primary" type="button" onclick="applyStatementFilters()">🔍 Применить</button>
             </div>
           </div>
         </div>
@@ -518,12 +524,8 @@
           <div class="tbl-wrap">
             <table class="tbl">
               <thead><tr><th>Дата</th><th>Документ №</th><th>Описание</th><th>Контрагент</th><th>Дебет</th><th>Кредит</th><th>Остаток</th><th>Статус</th></tr></thead>
-              <tbody>
-                <tr><td>07.03.2026</td><td class="mono">ПП-001847</td><td>Оплата металлопроката</td><td>ТОО «КазМеталл»</td><td class="amt-neg">₸12 450 000</td><td>—</td><td>₸248 750 000</td><td><span class="badge badge-active" style="font-size:0.62rem;">✓</span></td></tr>
-                <tr><td>07.03.2026</td><td class="mono">ПП-001846</td><td>Поступление от клиента</td><td>АО «Ромат»</td><td>—</td><td class="amt-pos">₸28 000 000</td><td>₸261 200 000</td><td><span class="badge badge-active" style="font-size:0.62rem;">✓</span></td></tr>
-                <tr><td>06.03.2026</td><td class="mono">ПП-001845</td><td>Аренда офиса март</td><td>ТОО «Офис-Центр»</td><td class="amt-neg">₸3 200 000</td><td>—</td><td>₸233 200 000</td><td><span class="badge badge-active" style="font-size:0.62rem;">✓</span></td></tr>
-                <tr><td>06.03.2026</td><td class="mono">SW-000124</td><td>SWIFT платёж USD</td><td>BARCLAYS BANK PLC</td><td class="amt-neg">$85 000</td><td>—</td><td>$57 800</td><td><span class="badge badge-pending" style="font-size:0.62rem;">⏳</span></td></tr>
-                <tr><td>05.03.2026</td><td class="mono">ЗП-001200</td><td>Зарплата сотрудников</td><td>142 сотрудника</td><td class="amt-neg">₸38 500 000</td><td>—</td><td>₸236 400 000</td><td><span class="badge badge-active" style="font-size:0.62rem;">✓</span></td></tr>
+              <tbody id="statement-table-body">
+                <tr><td colspan="8" style="text-align:center;color:var(--muted);padding:1rem;">Загрузка...</td></tr>
               </tbody>
             </table>
           </div>
@@ -539,38 +541,20 @@
           <select class="input" style="width:180px;" aria-label="Фильтр по роли"><option>Все роли</option><option>Директор</option><option>Руководитель</option><option>Фин. директор</option><option>Бухгалтер</option><option>Фин. менеджер</option></select>
           <button class="btn btn-primary" onclick="openModal('modal-add-employee')">+ Добавить</button>
         </div>
-        <div class="emp-grid">
-          <div class="emp-card">
-            <div class="emp-card-header"><div class="emp-ava" style="background:linear-gradient(135deg,#c9a84c,#e2c06a);color:#0c2340;">АС</div><div><div class="emp-name">Алиев Серик Нурланович</div><div class="emp-pos">Генеральный директор</div><span class="badge badge-director">Директор</span></div></div>
-            <div class="emp-info"><div class="emp-info-item"><div class="emp-info-lbl">ИИН</div><div class="emp-info-val">850312300145</div></div><div class="emp-info-item"><div class="emp-info-lbl">Телефон</div><div class="emp-info-val">+7 701 234 5678</div></div><div class="emp-info-item"><div class="emp-info-lbl">Статус</div><div class="emp-info-val" style="color:var(--green)">● Активен</div></div><div class="emp-info-item"><div class="emp-info-lbl">Последний вход</div><div class="emp-info-val">07.03.2026</div></div></div>
-            <div class="emp-actions"><button class="btn btn-sm btn-ghost" onclick="openModal('modal-employee-perms')">Права</button><button class="btn btn-sm btn-ghost">Изменить</button><button class="btn btn-sm btn-danger">Блок.</button></div>
+
+        <!-- Pending applications — visible to director only -->
+        <div id="emp-pending-section" style="display:none;margin-bottom:2rem;">
+          <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:1rem;">
+            <span style="font-size:0.95rem;font-weight:700;color:var(--navy);">Заявки на рассмотрении</span>
+            <span class="badge badge-pending" id="emp-pending-count">0</span>
           </div>
-          <div class="emp-card">
-            <div class="emp-card-header"><div class="emp-ava" style="background:#eaf1fb;color:var(--navy2);">КА</div><div><div class="emp-name">Кенжебаева Айгерим</div><div class="emp-pos">Финансовый директор</div><span class="badge badge-findirector">Фин. директор</span></div></div>
-            <div class="emp-info"><div class="emp-info-item"><div class="emp-info-lbl">ИИН</div><div class="emp-info-val">900524400287</div></div><div class="emp-info-item"><div class="emp-info-lbl">Телефон</div><div class="emp-info-val">+7 702 345 6789</div></div><div class="emp-info-item"><div class="emp-info-lbl">Статус</div><div class="emp-info-val" style="color:var(--green)">● Активен</div></div><div class="emp-info-item"><div class="emp-info-lbl">Последний вход</div><div class="emp-info-val">07.03.2026</div></div></div>
-            <div class="emp-actions"><button class="btn btn-sm btn-ghost" onclick="openModal('modal-employee-perms')">Права</button><button class="btn btn-sm btn-ghost">Изменить</button><button class="btn btn-sm btn-danger">Блок.</button></div>
-          </div>
-          <div class="emp-card">
-            <div class="emp-card-header"><div class="emp-ava" style="background:var(--green-bg);color:var(--green);">МД</div><div><div class="emp-name">Мухамедова Динара</div><div class="emp-pos">Главный бухгалтер</div><span class="badge badge-accountant">Бухгалтер</span></div></div>
-            <div class="emp-info"><div class="emp-info-item"><div class="emp-info-lbl">ИИН</div><div class="emp-info-val">880715200364</div></div><div class="emp-info-item"><div class="emp-info-lbl">Телефон</div><div class="emp-info-val">+7 703 456 7890</div></div><div class="emp-info-item"><div class="emp-info-lbl">Статус</div><div class="emp-info-val" style="color:var(--green)">● Активен</div></div><div class="emp-info-item"><div class="emp-info-lbl">Последний вход</div><div class="emp-info-val">06.03.2026</div></div></div>
-            <div class="emp-actions"><button class="btn btn-sm btn-ghost" onclick="openModal('modal-employee-perms')">Права</button><button class="btn btn-sm btn-ghost">Изменить</button><button class="btn btn-sm btn-danger">Блок.</button></div>
-          </div>
-          <div class="emp-card">
-            <div class="emp-card-header"><div class="emp-ava" style="background:var(--blue-bg);color:var(--navy2);">ТБ</div><div><div class="emp-name">Тулегенов Бауыржан</div><div class="emp-pos">Руководитель отдела</div><span class="badge badge-manager">Руководитель</span></div></div>
-            <div class="emp-info"><div class="emp-info-item"><div class="emp-info-lbl">ИИН</div><div class="emp-info-val">950630300521</div></div><div class="emp-info-item"><div class="emp-info-lbl">Телефон</div><div class="emp-info-val">+7 705 567 8901</div></div><div class="emp-info-item"><div class="emp-info-lbl">Статус</div><div class="emp-info-val" style="color:var(--green)">● Активен</div></div><div class="emp-info-item"><div class="emp-info-lbl">Последний вход</div><div class="emp-info-val">05.03.2026</div></div></div>
-            <div class="emp-actions"><button class="btn btn-sm btn-ghost" onclick="openModal('modal-employee-perms')">Права</button><button class="btn btn-sm btn-ghost">Изменить</button><button class="btn btn-sm btn-danger">Блок.</button></div>
-          </div>
-          <div class="emp-card">
-            <div class="emp-card-header"><div class="emp-ava" style="background:var(--orange-bg);color:var(--orange);">НЖ</div><div><div class="emp-name">Нурлан Жакупов</div><div class="emp-pos">Финансовый менеджер</div><span class="badge badge-finmanager">Фин. менеджер</span></div></div>
-            <div class="emp-info"><div class="emp-info-item"><div class="emp-info-lbl">ИИН</div><div class="emp-info-val">001105600742</div></div><div class="emp-info-item"><div class="emp-info-lbl">Телефон</div><div class="emp-info-val">+7 707 678 9012</div></div><div class="emp-info-item"><div class="emp-info-lbl">Статус</div><div class="emp-info-val" style="color:var(--green)">● Активен</div></div><div class="emp-info-item"><div class="emp-info-lbl">Последний вход</div><div class="emp-info-val">07.03.2026</div></div></div>
-            <div class="emp-actions"><button class="btn btn-sm btn-ghost" onclick="openModal('modal-employee-perms')">Права</button><button class="btn btn-sm btn-ghost">Изменить</button><button class="btn btn-sm btn-success">Активен</button></div>
-          </div>
-          <div class="emp-card" style="border:2px dashed var(--light);background:transparent;display:flex;align-items:center;justify-content:center;min-height:200px;">
-            <div style="text-align:center;cursor:pointer;" onclick="openModal('modal-add-employee')">
-              <div style="font-size:2.5rem;margin-bottom:0.75rem;opacity:0.4;">+</div>
-              <div style="font-size:0.85rem;font-weight:700;color:var(--muted);">Добавить сотрудника</div>
-            </div>
-          </div>
+          <div class="emp-grid" id="emp-pending-list"></div>
+          <hr style="border:none;border-top:1px solid var(--light);margin:1.5rem 0;">
+        </div>
+
+        <!-- Active employees (loaded from API) -->
+        <div class="emp-grid" id="emp-list">
+          <div style="text-align:center;padding:2rem;color:var(--muted);">Загрузка...</div>
         </div>
       </div>
 
@@ -579,15 +563,15 @@
         <div class="pane-title">Аналитика и отчёты</div>
         <div class="pane-desc">Финансовые показатели, оборот, структура расходов и доходов компании.</div>
         <div class="stats-row mb2">
-          <div class="stat-card sc-green"><div class="stat-ico">📈</div><div class="stat-label">Доходы (март)</div><div class="stat-value">₸87.4M</div><div class="stat-change change-up">▲ +12.3%</div></div>
-          <div class="stat-card sc-red"><div class="stat-ico">📉</div><div class="stat-label">Расходы (март)</div><div class="stat-value">₸54.2M</div><div class="stat-change change-dn">▲ +5.1%</div></div>
-          <div class="stat-card sc-navy"><div class="stat-ico">💰</div><div class="stat-label">Чистый поток</div><div class="stat-value">₸33.2M</div><div class="stat-change change-up">▲ +18.7%</div></div>
-          <div class="stat-card sc-gold"><div class="stat-ico">🔄</div><div class="stat-label">Оборот YTD</div><div class="stat-value">₸1.24B</div><div class="stat-change change-up">▲ +8.9%</div></div>
+          <div class="stat-card sc-green"><div class="stat-ico">📈</div><div class="stat-label" id="analytics-income-label">Доходы</div><div class="stat-value" id="analytics-income-value">₸ 0</div><div class="stat-change change-up" id="analytics-income-change">▲ +0%</div></div>
+          <div class="stat-card sc-red"><div class="stat-ico">📉</div><div class="stat-label" id="analytics-expense-label">Расходы</div><div class="stat-value" id="analytics-expense-value">₸ 0</div><div class="stat-change change-dn" id="analytics-expense-change">▼ 0%</div></div>
+          <div class="stat-card sc-navy"><div class="stat-ico">💰</div><div class="stat-label" id="analytics-net-label">Чистый поток</div><div class="stat-value" id="analytics-net-value">₸ 0</div><div class="stat-change change-up" id="analytics-net-change">▲ +0%</div></div>
+          <div class="stat-card sc-gold"><div class="stat-ico">🔄</div><div class="stat-label" id="analytics-turnover-label">Оборот YTD</div><div class="stat-value" id="analytics-turnover-value">₸ 0</div><div class="stat-change change-up" id="analytics-turnover-change">▲ +0%</div></div>
         </div>
         <div class="g2 mb2">
           <div class="card">
             <div class="card-header"><span class="card-title">Структура расходов</span></div>
-            <div class="card-body">
+            <div class="card-body" id="analytics-expense-structure">
               <div style="display:flex;flex-direction:column;gap:0.75rem;">
                 <div><div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:0.3rem;"><span>💼 Поставщики</span><span style="font-weight:700;">42%</span></div><div style="height:8px;background:var(--light);border-radius:4px;overflow:hidden;"><div style="height:100%;width:42%;background:var(--navy);border-radius:4px;"></div></div></div>
                 <div><div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:0.3rem;"><span>👥 Зарплата</span><span style="font-weight:700;">28%</span></div><div style="height:8px;background:var(--light);border-radius:4px;overflow:hidden;"><div style="height:100%;width:28%;background:var(--gold);border-radius:4px;"></div></div></div>
@@ -599,31 +583,16 @@
           </div>
           <div class="card">
             <div class="card-header"><span class="card-title">Топ-5 контрагентов</span></div>
-            <div class="card-body" style="padding:0;">
-              <div style="padding:0.9rem 1.25rem;border-bottom:1px solid var(--light);display:flex;justify-content:space-between;align-items:center;"><div><div style="font-size:0.85rem;font-weight:700;">ТОО «КазМеталл»</div><div style="font-size:0.72rem;color:var(--muted);">Поставщик</div></div><span style="font-weight:700;color:var(--red);">₸48.2M</span></div>
-              <div style="padding:0.9rem 1.25rem;border-bottom:1px solid var(--light);display:flex;justify-content:space-between;align-items:center;"><div><div style="font-size:0.85rem;font-weight:700;">АО «Ромат»</div><div style="font-size:0.72rem;color:var(--muted);">Покупатель</div></div><span style="font-weight:700;color:var(--green);">+₸87.5M</span></div>
-              <div style="padding:0.9rem 1.25rem;border-bottom:1px solid var(--light);display:flex;justify-content:space-between;align-items:center;"><div><div style="font-size:0.85rem;font-weight:700;">ТОО «Офис-Центр»</div><div style="font-size:0.72rem;color:var(--muted);">Аренда</div></div><span style="font-weight:700;color:var(--red);">₸12.8M</span></div>
-              <div style="padding:0.9rem 1.25rem;border-bottom:1px solid var(--light);display:flex;justify-content:space-between;align-items:center;"><div><div style="font-size:0.85rem;font-weight:700;">BARCLAYS BANK PLC</div><div style="font-size:0.72rem;color:var(--muted);">SWIFT</div></div><span style="font-weight:700;color:var(--red);">$85K</span></div>
-              <div style="padding:0.9rem 1.25rem;display:flex;justify-content:space-between;align-items:center;"><div><div style="font-size:0.85rem;font-weight:700;">КГД МФ РК</div><div style="font-size:0.72rem;color:var(--muted);">Налоги</div></div><span style="font-weight:700;color:var(--red);">₸6.1M</span></div>
+            <div class="card-body" style="padding:0;" id="analytics-counterparty-list">
+              <div style="text-align:center;color:var(--muted);padding:1rem;">Загрузка списка контрагентов...</div>
             </div>
           </div>
         </div>
         <div class="card">
           <div class="card-header"><span class="card-title">Ежемесячный оборот</span><button class="btn btn-sm btn-primary" onclick="showToast('info','Отчёт формируется','Excel будет готов через несколько секунд')">📊 Экспорт</button></div>
           <div class="card-body">
-            <div class="chart-area" style="height:180px;">
-              <div class="ch-group"><div class="ch-bar" style="height:52%;background:var(--navy2)"></div><div class="ch-lbl">Янв</div></div>
-              <div class="ch-group"><div class="ch-bar" style="height:64%;background:var(--navy2)"></div><div class="ch-lbl">Фев</div></div>
-              <div class="ch-group"><div class="ch-bar" style="height:48%;background:var(--navy2)"></div><div class="ch-lbl">Мар</div></div>
-              <div class="ch-group"><div class="ch-bar" style="height:78%;background:var(--navy2)"></div><div class="ch-lbl">Апр</div></div>
-              <div class="ch-group"><div class="ch-bar" style="height:60%;background:var(--navy2)"></div><div class="ch-lbl">Май</div></div>
-              <div class="ch-group"><div class="ch-bar" style="height:85%;background:var(--navy2)"></div><div class="ch-lbl">Июн</div></div>
-              <div class="ch-group"><div class="ch-bar" style="height:72%;background:var(--gold)"></div><div class="ch-lbl">Июл</div></div>
-              <div class="ch-group"><div class="ch-bar" style="height:90%;background:var(--gold)"></div><div class="ch-lbl">Авг</div></div>
-              <div class="ch-group"><div class="ch-bar" style="height:68%;background:var(--gold)"></div><div class="ch-lbl">Сен</div></div>
-              <div class="ch-group"><div class="ch-bar" style="height:82%;background:var(--gold)"></div><div class="ch-lbl">Окт</div></div>
-              <div class="ch-group"><div class="ch-bar" style="height:75%;background:var(--gold2)"></div><div class="ch-lbl">Ноя</div></div>
-              <div class="ch-group"><div class="ch-bar" style="height:95%;background:var(--gold2)"></div><div class="ch-lbl">Дек</div></div>
+            <div class="chart-area" id="analytics-turnover-chart" style="height:180px;">
+              <div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);">Загрузка графика...</div>
             </div>
           </div>
         </div>
@@ -631,20 +600,22 @@
 
       <!-- PANE: NOTIFICATIONS -->
       <div class="dash-pane" id="pane-notifications">
-        <div class="pane-title">Уведомления</div>
-        <div class="pane-desc">Системные сообщения, платёжные уведомления и оповещения безопасности.</div>
-        <div style="display:flex;gap:0.75rem;margin-bottom:1.5rem;">
-          <button class="btn btn-primary btn-sm">Все</button>
-          <button class="btn btn-ghost btn-sm">Платежи</button>
-          <button class="btn btn-ghost btn-sm">Безопасность</button>
-          <button class="btn btn-ghost btn-sm">Система</button>
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:1.25rem;flex-wrap:wrap;">
+          <div>
+            <div class="pane-title" style="margin-bottom:0.2rem;">Уведомления</div>
+            <div class="pane-desc" style="margin:0;">Системные сообщения, платёжные уведомления и оповещения безопасности.</div>
+          </div>
+          <button class="btn btn-sm btn-ghost" onclick="markAllNotifRead()">✓ Прочитать все</button>
         </div>
-        <div class="notif-list">
-          <div class="notif-item unread"><div class="notif-ico" style="background:var(--orange-bg);">⚠️</div><div class="notif-body"><div class="notif-title">Требуется подтверждение платежа</div><div class="notif-text">Платёж №2024-1847 на сумму ₸4 200 000 ожидает подтверждения. Получатель: ТОО «АлматыСтрой».</div><div class="notif-time">Сегодня, 14:35</div></div><button class="btn btn-sm btn-primary" style="flex-shrink:0;">Подтвердить</button></div>
-          <div class="notif-item unread"><div class="notif-ico" style="background:var(--blue-bg);">🔐</div><div class="notif-body"><div class="notif-title">Новый вход в систему</div><div class="notif-text">Chrome / Windows. IP: 178.88.42.156. Алматы, Казахстан.</div><div class="notif-time">Сегодня, 09:41</div></div></div>
-          <div class="notif-item unread"><div class="notif-ico" style="background:var(--green-bg);">✅</div><div class="notif-body"><div class="notif-title">Поступление средств</div><div class="notif-text">Зачислено ₸28 000 000. Отправитель: АО «Ромат».</div><div class="notif-time">Сегодня, 11:15</div></div></div>
-          <div class="notif-item"><div class="notif-ico" style="background:var(--gold-bg);">👤</div><div class="notif-body"><div class="notif-title">Новая заявка на регистрацию</div><div class="notif-text">Сейткали Мадияр Абайович. ИИН: 020814500893. Требуется одобрение.</div><div class="notif-time">Вчера, 17:22</div></div><button class="btn btn-sm btn-success" style="flex-shrink:0;">Одобрить</button></div>
-          <div class="notif-item"><div class="notif-ico" style="background:var(--off);">📊</div><div class="notif-body"><div class="notif-title">Ежемесячный отчёт готов</div><div class="notif-text">Финансовый отчёт за февраль 2026 доступен в разделе «Аналитика».</div><div class="notif-time">01.03.2026, 08:00</div></div></div>
+        <div style="display:flex;gap:0.6rem;margin-bottom:1.5rem;flex-wrap:wrap;" id="notif-filter-bar">
+          <button class="btn btn-primary btn-sm" data-notif-filter="all" onclick="filterNotifications('all')">Все <span id="notif-unread-count" class="badge badge-pending" style="margin-left:4px;font-size:0.62rem;padding:1px 5px;display:none;">0</span></button>
+          <button class="btn btn-ghost btn-sm" data-notif-filter="payment" onclick="filterNotifications('payment')">💸 Платежи</button>
+          <button class="btn btn-ghost btn-sm" data-notif-filter="security" onclick="filterNotifications('security')">🔐 Безопасность</button>
+          <button class="btn btn-ghost btn-sm" data-notif-filter="employee" onclick="filterNotifications('employee')">👤 Сотрудники</button>
+          <button class="btn btn-ghost btn-sm" data-notif-filter="system" onclick="filterNotifications('system')">🔧 Система</button>
+        </div>
+        <div class="notif-list" id="notif-list">
+          <!-- rendered by renderNotifications() -->
         </div>
       </div>
 
@@ -736,8 +707,8 @@
           <div class="tbl-wrap">
             <table class="tbl">
               <thead><tr><th>Дата / Время</th><th>Сотрудник</th><th>Действие</th><th>Объект</th><th>IP-адрес</th><th>Результат</th></tr></thead>
-              <tbody>
-                <tr><td>07.03.2026 14:32</td><td>Алиев С.Н. <span class="badge badge-director" style="font-size:0.55rem;">Директор</span></td><td>Подтверждение платежа</td><td>ПП-001847</td><td class="mono">178.88.42.156</td><td><span class="badge badge-active" style="font-size:0.62rem;">✓ Успех</span></td></tr>
+              <tbody id="audit-table-body">
+                <tr><td colspan="6" style="text-align:center;color:var(--muted);padding:1rem;">Загрузка журнала аудита...</td></tr>
                 <tr><td>07.03.2026 11:20</td><td>Кенжебаева А. <span class="badge badge-findirector" style="font-size:0.55rem;">Фин.дир</span></td><td>Создание платежа</td><td>SWIFT-000124</td><td class="mono">95.56.18.207</td><td><span class="badge badge-pending" style="font-size:0.62rem;">⏳ Ожидает</span></td></tr>
                 <tr><td>07.03.2026 09:41</td><td>Алиев С.Н.</td><td>Вход в систему</td><td>—</td><td class="mono">178.88.42.156</td><td><span class="badge badge-active" style="font-size:0.62rem;">✓ Успех</span></td></tr>
                 <tr><td>06.03.2026 17:22</td><td>Тулегенов Б. <span class="badge badge-manager" style="font-size:0.55rem;">Рук-ль</span></td><td>Изменение роли</td><td>Жакупов Н.Р.</td><td class="mono">77.94.30.12</td><td><span class="badge badge-active" style="font-size:0.62rem;">✓ Успех</span></td></tr>
@@ -844,7 +815,7 @@
     <div class="step-label">Шаг <strong>2 из 4</strong> — Подтверждение телефона</div>
     <div class="modal-h">SMS-верификация</div>
     <div class="modal-sub">На ваш номер отправлен 6-значный код подтверждения.</div>
-    <div class="alert alert-info">📱 Отправлено на: +7 701 *** **78</div>
+    <div class="alert alert-info" id="otp-phone-display">📱 Отправляем SMS...</div>
     <div style="text-align:center;margin:1.5rem 0 0.5rem;font-size:0.85rem;color:var(--muted);">Введите код из SMS</div>
     <div class="otp-row">
       <input class="otp-input" maxlength="1" oninput="otpMove(this,1)">
@@ -854,8 +825,8 @@
       <input class="otp-input" maxlength="1" oninput="otpMove(this,5)">
       <input class="otp-input" maxlength="1" oninput="otpMove(this,6)">
     </div>
-    <div style="text-align:center;font-size:0.78rem;color:var(--muted);margin-bottom:1.5rem;">Не получили? <a href="#" style="color:var(--navy2);font-weight:700;">Отправить повторно</a></div>
-    <button class="btn btn-primary btn-full" onclick="closeModal('modal-reg-step2');openModal('modal-reg-step3')">Подтвердить →</button>
+    <div style="text-align:center;font-size:0.78rem;color:var(--muted);margin-bottom:1.5rem;">Не получили? <a href="#" onclick="event.preventDefault();sendOtp();showToast('info','SMS отправлен','Новый код выслан на ваш номер.')" style="color:var(--navy2);font-weight:700;">Отправить повторно</a></div>
+    <button class="btn btn-primary btn-full" onclick="submitRegStep2()">Подтвердить →</button>
     <button class="btn btn-ghost btn-full" style="margin-top:0.5rem;" onclick="closeModal('modal-reg-step2');openModal('modal-reg-step1')">← Назад</button>
   </div>
 </div>
@@ -979,4 +950,82 @@
     <div class="form-group"><label>Роль в системе <span class="req">*</span></label><select class="input"><option>— Выберите —</option><option>Бухгалтер</option><option>Финансовый менеджер</option><option>Руководитель</option><option>Финансовый директор</option></select></div>
     <div class="form-group"><label>Телефон</label><input class="input" type="tel" placeholder="+7 (7xx) xxx xx xx"></div>
     <div class="form-group"><label>Email</label><input class="input" type="email" placeholder="email@company.kz"></div>
-    <div class="alert alert-info">📧 Сотруднику будет отправлен SMS с инструкцией по р�
+    <div class="alert alert-info">📧 Сотруднику будет отправлен SMS с инструкцией по регистрации.</div>
+    <button class="btn btn-primary btn-full" onclick="closeModal('modal-add-employee');showToast('success','Приглашение отправлено','Сотрудник получит SMS-уведомление')">Добавить сотрудника</button>
+  </div>
+</div>
+
+<!-- EMPLOYEE REGISTRATION DETAIL MODAL -->
+<div class="overlay" id="modal-emp-detail">
+  <div class="modal modal-lg">
+    <button class="modal-close" onclick="closeModal('modal-emp-detail')">✕</button>
+    <div class="modal-h">Заявка на регистрацию</div>
+    <div class="modal-sub">Проверьте данные сотрудника перед подтверждением.</div>
+
+    <div class="alert alert-gold" style="margin-bottom:1.25rem;">⏳ Статус: ожидает подтверждения директора</div>
+
+    <!-- Profile header -->
+    <div style="display:flex;align-items:center;gap:1rem;padding:1rem 1.25rem;background:var(--off);border-radius:10px;margin-bottom:1.5rem;">
+      <div id="emp-detail-ava" style="width:56px;height:56px;border-radius:50%;background:var(--gold-bg);color:#a67c00;display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:800;flex-shrink:0;">??</div>
+      <div>
+        <div style="font-size:1rem;font-weight:700;color:var(--navy);" id="emp-detail-name">—</div>
+        <div style="font-size:0.82rem;color:var(--muted);margin-top:0.15rem;" id="emp-detail-position">—</div>
+      </div>
+    </div>
+
+    <!-- Details grid -->
+    <div class="form-row" style="margin-bottom:0.25rem;">
+      <div class="form-group"><label>ИИН</label><input class="input" id="emp-detail-iin" readonly style="background:var(--off);"></div>
+      <div class="form-group"><label>Телефон</label><input class="input" id="emp-detail-phone" readonly style="background:var(--off);"></div>
+    </div>
+    <div class="form-row" style="margin-bottom:0.25rem;">
+      <div class="form-group"><label>Email</label><input class="input" id="emp-detail-email" readonly style="background:var(--off);"></div>
+      <div class="form-group"><label>Должность</label><input class="input" id="emp-detail-pos" readonly style="background:var(--off);"></div>
+    </div>
+    <div class="form-row" style="margin-bottom:1.25rem;">
+      <div class="form-group"><label>БИН компании</label><input class="input" id="emp-detail-bin" readonly style="background:var(--off);"></div>
+      <div class="form-group"><label>Дата заявки</label><input class="input" id="emp-detail-date" readonly style="background:var(--off);"></div>
+    </div>
+
+    <!-- Role assignment -->
+    <div class="form-group">
+      <label>Назначить роль в системе <span class="req">*</span></label>
+      <select class="input" id="emp-detail-role">
+        <option value="">— Выберите роль —</option>
+        <option value="findirector">Финансовый директор</option>
+        <option value="accountant">Бухгалтер</option>
+        <option value="manager">Руководитель</option>
+        <option value="finmanager">Финансовый менеджер</option>
+        <option value="cashier">Кассир</option>
+        <option value="viewer">Наблюдатель</option>
+      </select>
+    </div>
+
+    <!-- Permissions preview (shown after role selection) -->
+    <div id="emp-detail-perms" class="alert alert-info" style="display:none;margin-bottom:1rem;font-size:0.82rem;"></div>
+
+    <div style="display:flex;gap:0.75rem;margin-top:1.5rem;">
+      <button class="btn btn-danger btn-full" onclick="rejectEmpFromDetail()">✕ Отклонить заявку</button>
+      <button class="btn btn-success btn-full" onclick="approveEmpFromDetail()">✓ Подтвердить и создать кабинет</button>
+    </div>
+    <p style="font-size:0.72rem;color:var(--muted);text-align:center;margin-top:0.75rem;">После подтверждения сотрудник сможет войти в систему с ИИН и паролем, указанными при регистрации.</p>
+  </div>
+</div>
+
+<!-- EMPLOYEE DOCUMENTS MODAL -->
+<div class="overlay" id="modal-employee-docs">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-employee-docs')">✕</button>
+    <div class="modal-h">Документы сотрудника</div>
+    <div class="modal-sub" id="emp-docs-name" style="font-weight:600;color:var(--navy);"></div>
+    <div id="emp-docs-body" style="margin-top:1rem;">
+      <div style="text-align:center;padding:2rem;color:var(--muted);">Загрузка...</div>
+    </div>
+    <div style="margin-top:1.5rem;">
+      <button class="btn btn-ghost btn-full" onclick="closeModal('modal-employee-docs')">Закрыть</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>�

@@ -108,6 +108,9 @@ function showPane(paneId) {
   document.querySelectorAll('.sidebar-item').forEach(function (i) { i.classList.remove('active'); });
   var activeItem = document.querySelector('[onclick*="' + paneId + '"]');
   if (activeItem) activeItem.classList.add('active');
+
+  if (paneId === 'pane-employees') loadEmployees();
+  if (paneId === 'pane-notifications') loadNotifications();
 }
 
 /* ---------- Tabs ---------- */
@@ -163,14 +166,35 @@ async function doLogin() {
     const payload = await response.json().catch(() => ({}));
 
     if (response.status === 200) {
-      // Успешная авторизация
       if (payload.token) {
-        localStorage.setItem(AUTH_TOKEN_KEY, payload.token);
+        sessionStorage.setItem(AUTH_TOKEN_KEY, payload.token);
       }
-      setCurrentUser(payload.user || null);
+      // Normalize user: API returns camelCase but handle snake_case fallback
+      const u = payload.user || {};
+      const normalizedUser = {
+        id:        u.id,
+        email:     u.email     || '',
+        firstName: u.firstName || u.first_name  || '',
+        lastName:  u.lastName  || u.last_name   || '',
+        role:      u.role      || '',
+        position:  u.position  || '',
+        status:    u.status    || 'active',
+        iin:       u.iin       || '',
+        phone:     u.phone     || '',
+        company:   u.company   || {},
+        companyId: u.companyId || (u.company && u.company.id) || ''
+      };
+      setCurrentUser(normalizedUser);
       closeModal('modal-login');
       resetLoginForm();
       goTo('screen-dashboard');
+      logAuditEvent({
+        userName: normalizedUser.firstName + ' ' + normalizedUser.lastName,
+        userRole: normalizedUser.role,
+        action: 'Вход в систему',
+        object: '—',
+        result: '✓ Успех'
+      });
       showToast('success', 'Добро пожаловать!', 'Вы успешно вошли в систему.');
       return;
     }
@@ -178,12 +202,28 @@ async function doLogin() {
     // Ошибки входа
     if (response.status === 401) {
       if (errEl) errEl.style.display = '';
+      logAuditEvent({
+        userName: iinVal,
+        action: 'Неудачный вход',
+        object: '—',
+        result: '✗ Ошибка'
+      });
       showToast('error', 'Ошибка входа', 'Неверный ИИН или пароль.');
       return;
     }
     if (response.status === 403) {
       if (errEl) errEl.style.display = '';
-      showToast('error', 'Доступ запрещён', 'Заявка не одобрена или отклонена.');
+      logAuditEvent({
+        userName: iinVal,
+        action: 'Неудачный вход',
+        object: '—',
+        result: '✗ Доступ запрещён'
+      });
+      const st = payload.status || '';
+      const msg = st === 'rejected'
+        ? 'Ваша заявка отклонена директором.'
+        : 'Заявка ещё не одобрена. Ожидайте подтверждения директора.';
+      showToast('error', 'Доступ запрещён', msg);
       return;
     }
 
@@ -192,8 +232,12 @@ async function doLogin() {
     showToast('error', 'Ошибка входа', serverMsg || 'Не удалось выполнить вход. Попробуйте позже.');
   } catch (error) {
     if (errEl) errEl.style.display = '';
-    showToast('error', 'Ошибка входа', 'Сервер недоступен или сеть не работает.');
     console.error('Login error:', error);
+    let msg = 'Сервер недоступен. Убедитесь что запущен npm start и открыт http://localhost:3001';
+    if (window.location.protocol === 'file:') {
+      msg = '⚠️ Откройте сайт через сервер: запустите npm start, затем http://localhost:3001';
+    }
+    showToast('error', 'Ошибка соединения', msg);
   } finally {
     if (btn) { btn.disabled = false; btn.textContent = '🔐 Войти'; }
   }
@@ -209,21 +253,21 @@ function doLogout() {
 
 // Базовый URL реального API (по требованию login должен идти именно сюда)
 // При необходимости можно сменить на '/api' для прокси локального сервера.
-const API_BASE = 'https://qazbank-backend-production.up.railway.app/api';
+const API_BASE = '/api'; // Все запросы через локальный прокси server.js
 const API_REGISTER = API_BASE + '/register';
 const API_LOGIN = API_BASE + '/login';
 
-// Ключ в localStorage для JWT токена
+// Токен хранится только в sessionStorage (очищается при закрытии вкладки)
 const AUTH_TOKEN_KEY = 'qazcorp_auth_token';
 const AUTH_USER_KEY  = 'qazcorp_user';
 
 function getAuthToken() {
-  return localStorage.getItem(AUTH_TOKEN_KEY);
+  return sessionStorage.getItem(AUTH_TOKEN_KEY);
 }
 
 function getStoredUser() {
   try {
-    const raw = localStorage.getItem(AUTH_USER_KEY);
+    const raw = sessionStorage.getItem(AUTH_USER_KEY);
     return raw ? JSON.parse(raw) : null;
   } catch {
     return null;
@@ -232,10 +276,10 @@ function getStoredUser() {
 
 function setStoredUser(user) {
   if (!user) {
-    localStorage.removeItem(AUTH_USER_KEY);
+    sessionStorage.removeItem(AUTH_USER_KEY);
     return;
   }
-  localStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
+  sessionStorage.setItem(AUTH_USER_KEY, JSON.stringify(user));
 }
 
 function getAuthHeaders() {
@@ -259,34 +303,819 @@ const ROLE_CONFIG = {
     perms: ['Просмотр баланса', 'Создание и подтверждение платежей', 'Управление сотрудниками', 'Настройка ролей и прав']
   },
   manager: {
-    label: 'Руководитель',
+    label: 'Менеджер',
     badge: 'badge-manager',
-    nav: ['pane-dashboard','pane-transfer','pane-statements','pane-analytics','pane-employees','pane-settings'],
-    perms: ['Просмотр баланса', 'Создание платежей', 'Просмотр отчётов']
+    nav: ['pane-dashboard','pane-transfer','pane-statements','pane-settings'],
+    perms: ['Просмотр баланса', 'Создание заявок на перевод', 'Работа с собственными виртуальными счетами']
   },
   accountant: {
     label: 'Бухгалтер',
     badge: 'badge-accountant',
     nav: ['pane-dashboard','pane-transfer','pane-statements','pane-settings'],
-    perms: ['Просмотр баланса', 'Работа с выписками', 'Оформление платежей']
+    perms: ['Просмотр баланса', 'Работа с выписками', 'Оформление платежей (на одобрение директора)']
   },
-  'financial_director': {
+  findirector: {
     label: 'Фин. директор',
     badge: 'badge-findirector',
     nav: ['pane-dashboard','pane-transfer','pane-statements','pane-analytics','pane-settings'],
-    perms: ['Просмотр баланса', 'Финансовая аналитика', 'Контроль платежей']
+    perms: ['Просмотр баланса', 'Финансовая аналитика', 'Платежи без лимита', 'Контроль платежей']
   },
-  'finance_manager': {
+  finmanager: {
     label: 'Фин. менеджер',
     badge: 'badge-finmanager',
     nav: ['pane-dashboard','pane-analytics','pane-settings'],
     perms: ['Просмотр аналитики', 'Подготовка отчётов']
+  },
+  cashier: {
+    label: 'Кассир',
+    badge: 'badge-viewer',
+    nav: ['pane-dashboard','pane-statements','pane-settings'],
+    perms: ['Просмотр баланса', 'Просмотр выписок']
+  },
+  viewer: {
+    label: 'Наблюдатель',
+    badge: 'badge-viewer',
+    nav: ['pane-dashboard','pane-settings'],
+    perms: ['Просмотр баланса']
   }
 };
 
+const COMPANY_ROOT_ACCOUNT = {
+  id: 'main',
+  name: 'Основной счёт компании',
+  iban: 'KZ89 125K ZT00 0001 2345 67',
+  currency: 'KZT',
+  balance: 248750000,
+  available: 240100000
+};
+
+const VIRTUAL_ACCOUNTS = [
+  { id:'va-1', name:'Виртуальный счёт закупок', iban:'KZ89 125K ZT00 0001 2345 68', currency:'KZT', balance: 64000000, ownerRole:'manager', ownerLabel:'Менеджер отдела', parentId:'main' },
+  { id:'va-2', name:'Виртуальный счёт маркетинга', iban:'KZ89 125K ZT00 0001 2345 69', currency:'KZT', balance: 31000000, ownerRole:'accountant', ownerLabel:'Бухгалтер', parentId:'main' },
+  { id:'va-3', name:'Виртуальный счёт операционный', iban:'KZ89 125K ZT00 0001 2345 70', currency:'KZT', balance: 25500000, ownerRole:'director', ownerLabel:'Директор', parentId:'main' }
+];
+
+let TRANSACTIONS = [
+  {
+    id: 'TX-2026-001',
+    document: 'ПП-001847',
+    createdAt: '2026-03-07T14:32:00',
+    type: 'payment',
+    description: 'Оплата металлопроката',
+    counterparty: 'ТОО «КазМеталл»',
+    accountId: 'main',
+    virtualId: 'va-1',
+    direction: 'out',
+    amount: 12450000,
+    currency: 'KZT',
+    status: 'approved',
+    createdBy: 'Мухамедова Динара',
+    approvedBy: 'Алиев Серик',
+    balanceAfter: 248750000
+  },
+  {
+    id: 'TX-2026-002',
+    document: 'ПП-001846',
+    createdAt: '2026-03-07T11:15:00',
+    type: 'income',
+    description: 'Поступление от клиента',
+    counterparty: 'АО «Ромат»',
+    accountId: 'main',
+    direction: 'in',
+    amount: 28000000,
+    currency: 'KZT',
+    status: 'approved',
+    createdBy: 'Сейткали Мадияр',
+    approvedBy: 'Алиев Серик',
+    balanceAfter: 261200000
+  },
+  {
+    id: 'TX-2026-003',
+    document: 'ПП-001845',
+    createdAt: '2026-03-06T17:45:00',
+    type: 'payment',
+    description: 'Аренда офиса март',
+    counterparty: 'ТОО «Офис-Центр»',
+    accountId: 'main',
+    direction: 'out',
+    amount: 3200000,
+    currency: 'KZT',
+    status: 'approved',
+    createdBy: 'Мухамедова Динара',
+    approvedBy: 'Алиев Серик',
+    balanceAfter: 233200000
+  },
+  {
+    id: 'TX-2026-004',
+    document: 'SW-000124',
+    createdAt: '2026-03-06T09:00:00',
+    type: 'swift',
+    description: 'SWIFT платёж USD',
+    counterparty: 'BARCLAYS BANK PLC',
+    accountId: 'main',
+    direction: 'out',
+    amount: 85000,
+    currency: 'USD',
+    status: 'pending',
+    createdBy: 'Мухамедова Динара'
+  },
+  {
+    id: 'TX-2026-005',
+    document: 'ЗП-001200',
+    createdAt: '2026-03-05T16:20:00',
+    type: 'salary',
+    description: 'Зарплата сотрудников',
+    counterparty: '142 сотрудника',
+    accountId: 'main',
+    direction: 'out',
+    amount: 38500000,
+    currency: 'KZT',
+    status: 'approved',
+    createdBy: 'Мухамедова Динара',
+    approvedBy: 'Алиев Серик',
+    balanceAfter: 236400000
+  }
+];
+
+const STATEMENT_FILTERS = {
+  account: 'all',
+  type: 'all',
+  from: '',
+  to: ''
+};
+
+function getCurrentUser() {
+  return getStoredUser();
+}
+
+function getAccountById(id) {
+  if (id === 'main') return COMPANY_ROOT_ACCOUNT;
+  return VIRTUAL_ACCOUNTS.find(function (acct) { return acct.id === id; }) || null;
+}
+
+function getAccessibleAccounts(user) {
+  const mainPlus = [COMPANY_ROOT_ACCOUNT];
+  if (!user) return mainPlus;
+  if (user.role === 'director' || user.role === 'findirector' || user.role === 'finmanager') {
+    return mainPlus.concat(VIRTUAL_ACCOUNTS);
+  }
+  if (user.role === 'manager' || user.role === 'accountant') {
+    return mainPlus.concat(VIRTUAL_ACCOUNTS.filter(function (acct) {
+      return acct.ownerRole === user.role;
+    }));
+  }
+  if (user.role === 'cashier' || user.role === 'viewer') {
+    return mainPlus;
+  }
+  return mainPlus;
+}
+
+function formatCurrency(amount, currency) {
+  if (currency === 'USD') return '$' + Number(amount).toLocaleString('en-US');
+  if (currency === 'EUR') return '€' + Number(amount).toLocaleString('de-DE');
+  if (currency === 'KZT') return '₸ ' + Number(amount).toLocaleString('ru-RU');
+  return amount + ' ' + currency;
+}
+
+function getStatusBadge(status) {
+  if (!status) return '<span class="badge badge-pending">Неизвестно</span>';
+  const key = status.toLowerCase();
+  if (key === 'approved' || key === 'completed') return '<span class="badge badge-active">✓ Выполнен</span>';
+  if (key === 'pending') return '<span class="badge badge-pending">⏳ На рассмотрении</span>';
+  if (key === 'rejected') return '<span class="badge badge-danger">✕ Отклонён</span>';
+  return '<span class="badge">' + status + '</span>';
+}
+
+function isAmountNegative(direction) {
+  return direction === 'out';
+}
+
+function getFilteredTransactions() {
+  const account = document.getElementById('statement-account');
+  const type = document.getElementById('statement-type');
+  const from = document.getElementById('statement-from');
+  const to = document.getElementById('statement-to');
+  const filterAccount = account ? account.value : STATEMENT_FILTERS.account;
+  const filterType = type ? type.value : STATEMENT_FILTERS.type;
+  const fromDate = from ? from.value : STATEMENT_FILTERS.from;
+  const toDate = to ? to.value : STATEMENT_FILTERS.to;
+
+  return TRANSACTIONS.slice().filter(function (tx) {
+    if (filterAccount && filterAccount !== 'all') {
+      if (tx.accountId !== filterAccount && tx.virtualId !== filterAccount) return false;
+    }
+    if (filterType && filterType !== 'all' && tx.type !== filterType) return false;
+    if (fromDate) {
+      const date = tx.createdAt ? tx.createdAt.slice(0, 10) : '';
+      if (date < fromDate) return false;
+    }
+    if (toDate) {
+      const date = tx.createdAt ? tx.createdAt.slice(0, 10) : '';
+      if (date > toDate) return false;
+    }
+    return true;
+  }).sort(function (a, b) {
+    return new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date);
+  });
+}
+
+function getCurrentMonthRange() {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth(), 1);
+  return {
+    from: start.toISOString().slice(0, 10),
+    to: now.toISOString().slice(0, 10)
+  };
+}
+
+function updateStatementDateDefaults() {
+  const range = getCurrentMonthRange();
+  const from = document.getElementById('statement-from');
+  const to = document.getElementById('statement-to');
+  if (from && !from.value) from.value = range.from;
+  if (to && !to.value) to.value = range.to;
+}
+
+function formatAnalyticsAmount(amount, currency) {
+  if (amount === null || amount === undefined) return '₸ 0';
+  if (currency === 'USD') return '$' + Number(amount).toLocaleString('en-US');
+  if (currency === 'EUR') return '€' + Number(amount).toLocaleString('de-DE');
+  return '₸ ' + Number(amount).toLocaleString('ru-RU');
+}
+
+function getLatestTransactionMonth() {
+  return TRANSACTIONS.reduce(function (latest, tx) {
+    if (!tx.createdAt) return latest;
+    var created = new Date(tx.createdAt);
+    if (isNaN(created.getTime())) return latest;
+    return !latest || created > latest ? created : latest;
+  }, null);
+}
+
+function renderAnalytics() {
+  const months = ['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн', 'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек'];
+
+  var monthlyData = {};
+  TRANSACTIONS.forEach(function (tx) {
+    if (!tx.createdAt) return;
+    if (tx.currency !== 'KZT') return;
+    var created = new Date(tx.createdAt);
+    if (isNaN(created.getTime())) return;
+    var key = created.getFullYear() + '-' + String(created.getMonth() + 1).padStart(2, '0');
+    if (!monthlyData[key]) {
+      monthlyData[key] = { year: created.getFullYear(), month: created.getMonth(), income: 0, expense: 0, turnover: 0, txs: [] };
+    }
+    var amount = Number(tx.amount) || 0;
+    if (tx.direction === 'in') monthlyData[key].income += amount;
+    if (tx.direction === 'out') monthlyData[key].expense += amount;
+    monthlyData[key].turnover += amount;
+    monthlyData[key].txs.push(tx);
+  });
+
+  var monthKeys = Object.keys(monthlyData).sort();
+  var latestKey = monthKeys.length ? monthKeys[monthKeys.length - 1] : null;
+  var prevKey = monthKeys.length > 1 ? monthKeys[monthKeys.length - 2] : null;
+  var latestData = latestKey ? monthlyData[latestKey] : { year: new Date().getFullYear(), month: new Date().getMonth(), income: 0, expense: 0, turnover: 0, txs: [] };
+  var prevData = prevKey ? monthlyData[prevKey] : { income: 0, expense: 0, turnover: 0, txs: [] };
+
+  var income = latestData.income;
+  var expense = latestData.expense;
+  var net = income - expense;
+  var turnover = latestData.turnover;
+
+  var incomeLabel = document.getElementById('analytics-income-label');
+  var incomeValue = document.getElementById('analytics-income-value');
+  var incomeChange = document.getElementById('analytics-income-change');
+  var expenseLabel = document.getElementById('analytics-expense-label');
+  var expenseValue = document.getElementById('analytics-expense-value');
+  var expenseChange = document.getElementById('analytics-expense-change');
+  var netLabel = document.getElementById('analytics-net-label');
+  var netValue = document.getElementById('analytics-net-value');
+  var netChange = document.getElementById('analytics-net-change');
+  var turnoverLabel = document.getElementById('analytics-turnover-label');
+  var turnoverValue = document.getElementById('analytics-turnover-value');
+  var turnoverChange = document.getElementById('analytics-turnover-change');
+
+  var activeMonthLabel = months[latestData.month] + ' ' + latestData.year;
+  if (incomeLabel) incomeLabel.textContent = 'Доходы (' + activeMonthLabel + ')';
+  if (incomeValue) incomeValue.textContent = formatAnalyticsAmount(income, 'KZT');
+  if (incomeChange) {
+    var diff = prevData.income ? Math.round(((income - prevData.income) / Math.abs(prevData.income)) * 100) : 0;
+    incomeChange.textContent = prevData.income ? '▲ ' + (diff >= 0 ? '+' + diff + '%' : diff + '%') : income ? '● Новое' : '—';
+    incomeChange.className = 'stat-change ' + (income >= prevData.income ? 'change-up' : 'change-dn');
+  }
+
+  if (expenseLabel) expenseLabel.textContent = 'Расходы (' + activeMonthLabel + ')';
+  if (expenseValue) expenseValue.textContent = formatAnalyticsAmount(expense, 'KZT');
+  if (expenseChange) {
+    var diffExp = prevData.expense ? Math.round(((expense - prevData.expense) / Math.abs(prevData.expense)) * 100) : 0;
+    expenseChange.textContent = prevData.expense ? (diffExp >= 0 ? '▲ +' + diffExp + '%' : '▼ ' + Math.abs(diffExp) + '%') : expense ? '● Новое' : '—';
+    expenseChange.className = 'stat-change ' + (expense <= prevData.expense ? 'change-up' : 'change-dn');
+  }
+
+  if (netLabel) netLabel.textContent = 'Чистый поток (' + activeMonthLabel + ')';
+  if (netValue) netValue.textContent = formatAnalyticsAmount(net, 'KZT');
+  if (netChange) {
+    var prevNet = prevData.income - prevData.expense;
+    var diffNet = prevNet ? Math.round(((net - prevNet) / Math.abs(prevNet)) * 100) : 0;
+    netChange.textContent = prevNet ? (diffNet >= 0 ? '▲ +' + diffNet + '%' : '▼ ' + Math.abs(diffNet) + '%') : net ? '● Новое' : '—';
+    netChange.className = 'stat-change ' + (net >= prevNet ? 'change-up' : 'change-dn');
+  }
+
+  if (turnoverLabel) turnoverLabel.textContent = 'Оборот (' + activeMonthLabel + ')';
+  if (turnoverValue) turnoverValue.textContent = formatAnalyticsAmount(turnover, 'KZT');
+  if (turnoverChange) {
+    var diffTurn = prevData.turnover ? Math.round(((turnover - prevData.turnover) / Math.abs(prevData.turnover)) * 100) : 0;
+    turnoverChange.textContent = prevData.turnover ? (diffTurn >= 0 ? '▲ +' + diffTurn + '%' : '▼ ' + Math.abs(diffTurn) + '%') : turnover ? '● Новое' : '—';
+    turnoverChange.className = 'stat-change ' + (turnover >= prevData.turnover ? 'change-up' : 'change-dn');
+  }
+
+  var expenseStructure = document.getElementById('analytics-expense-structure');
+  if (expenseStructure) {
+    var categories = [
+      { key: 'suppliers', label: '💼 Поставщики', total: 0 },
+      { key: 'salary', label: '👥 Зарплата', total: 0 },
+      { key: 'rent', label: '🏢 Аренда', total: 0 },
+      { key: 'taxes', label: '🧾 Налоги', total: 0 },
+      { key: 'other', label: '📦 Прочие', total: 0 }
+    ];
+    latestData.txs.filter(function (tx) { return tx.direction === 'out'; }).forEach(function (tx) {
+      var desc = tx.description || '';
+      var target = 'other';
+      if (tx.type === 'salary' || /зарплат/i.test(desc)) target = 'salary';
+      else if (/аренд|коммун|комм|жкх/i.test(desc)) target = 'rent';
+      else if (/налог|сбор/i.test(desc)) target = 'taxes';
+      else if (tx.type === 'payment' || tx.type === 'swift') target = 'suppliers';
+      var category = categories.find(function (item) { return item.key === target; });
+      if (category) category.total += tx.amount;
+    });
+    var totalExpense = categories.reduce(function (sum, item) { return sum + item.total; }, 0);
+    if (!totalExpense) {
+      expenseStructure.innerHTML = '<div style="text-align:center;color:var(--muted);padding:1rem;">Нет данных о расходах за выбранный период.</div>';
+    } else {
+      expenseStructure.innerHTML = categories.map(function (item) {
+        if (!item.total) return '';
+        var percent = Math.round((item.total / totalExpense) * 100);
+        var width = percent ? percent : 4;
+        return '<div><div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:0.3rem;"><span>' + item.label + '</span><span style="font-weight:700;">' + percent + '%</span></div><div style="height:8px;background:var(--light);border-radius:4px;overflow:hidden;"><div style="height:100%;width:' + width + '%;background:var(--navy);border-radius:4px;"></div></div></div>';
+      }).join('');
+    }
+  }
+
+  var counterpartyList = document.getElementById('analytics-counterparty-list');
+  if (counterpartyList) {
+    var totals = {};
+    latestData.txs.forEach(function (tx) {
+      if (!tx.counterparty) return;
+      totals[tx.counterparty] = (totals[tx.counterparty] || 0) + tx.amount;
+    });
+    var topCounterparties = Object.keys(totals).sort(function (a, b) { return totals[b] - totals[a]; }).slice(0, 5);
+    if (!topCounterparties.length) {
+      counterpartyList.innerHTML = '<div style="text-align:center;color:var(--muted);padding:1rem;">Нет данных.</div>';
+    } else {
+      counterpartyList.innerHTML = topCounterparties.map(function (name) {
+        var value = totals[name];
+        return '<div style="padding:0.9rem 1.25rem;border-bottom:1px solid var(--light);display:flex;justify-content:space-between;align-items:center;"><div><div style="font-size:0.85rem;font-weight:700;">' + name + '</div><div style="font-size:0.72rem;color:var(--muted);">Оборот</div></div><span style="font-weight:700;color:' + (value >= 0 ? 'var(--green)' : 'var(--red)') + ';">' + formatAnalyticsAmount(value, 'KZT') + '</span></div>';
+      }).join('');
+    }
+  }
+
+  var chart = document.getElementById('analytics-turnover-chart');
+  if (chart) {
+    var chartKeys = monthKeys.slice(-6);
+    if (!chartKeys.length) {
+      chart.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);">Нет данных для графика.</div>';
+    } else {
+      var monthTotals = chartKeys.map(function (key) { return Math.abs(monthlyData[key].turnover); });
+      var maxValue = Math.max.apply(null, monthTotals) || 1;
+      chart.innerHTML = chartKeys.map(function (key, index) {
+        var monthInfo = monthlyData[key];
+        var height = Math.round((monthTotals[index] / maxValue) * 100);
+        var color = index === chartKeys.length - 1 ? 'var(--navy2)' : 'var(--navy)';
+        return '<div class="ch-group"><div class="ch-bar" style="height:' + (height || 15) + '%;background:' + color + ';"></div><div class="ch-lbl">' + months[monthInfo.month] + '</div></div>';
+      }).join('');
+    }
+  }
+}
+
+function downloadBlob(content, mimeType, filename) {
+  const blob = new Blob([content], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+function updateDashboardSummary() {
+  const mainBalanceEl = document.getElementById('main-acc-balance');
+  const mainAvailableEl = document.getElementById('main-acc-available');
+  const ibanEl = document.getElementById('main-acc-iban');
+  if (mainBalanceEl) mainBalanceEl.textContent = formatCurrency(COMPANY_ROOT_ACCOUNT.balance, COMPANY_ROOT_ACCOUNT.currency);
+  if (mainAvailableEl) mainAvailableEl.textContent = COMPANY_ROOT_ACCOUNT.currency + ' · Доступно: ' + formatCurrency(COMPANY_ROOT_ACCOUNT.available, COMPANY_ROOT_ACCOUNT.currency);
+  if (ibanEl) ibanEl.textContent = COMPANY_ROOT_ACCOUNT.iban;
+}
+
+function renderVirtualAccounts() {
+  const list = document.getElementById('virtual-account-list');
+  const user = getCurrentUser();
+  if (!list) return;
+  const accounts = getAccessibleAccounts(user).filter(function (acct) { return acct.id !== 'main'; });
+  if (!accounts.length) {
+    list.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted);">У вас нет назначенных виртуальных счетов.</div>';
+    return;
+  }
+  list.innerHTML = accounts.map(function (acct) {
+    return '<div style="padding:1rem 1.5rem;border-bottom:1px solid var(--light);display:flex;align-items:center;justify-content:space-between;gap:1rem;">' +
+      '<div><div style="font-size:0.85rem;font-weight:700;color:var(--navy);">' + acct.name + '</div>' +
+      '<div style="font-size:0.72rem;color:var(--muted);">' + acct.iban + '</div></div>' +
+      '<div style="text-align:right;"><div style="font-weight:700;color:var(--navy);">' + formatCurrency(acct.balance, acct.currency) + '</div><div style="font-size:0.72rem;color:var(--green);">' + acct.ownerLabel + '</div></div>' +
+    '</div>';
+  }).join('');
+}
+
+function renderPendingPayments() {
+  const list = document.getElementById('pending-payment-list');
+  const card = document.getElementById('pending-payments-card');
+  const count = document.getElementById('pending-count');
+  const summary = document.getElementById('dashboard-pending-summary');
+  const summaryCount = document.getElementById('dashboard-pending-count');
+  const user = getCurrentUser();
+  const pending = TRANSACTIONS.filter(function (tx) { return tx.status === 'pending'; });
+  if (!list || !card || !count) return;
+
+  if (!user || user.role !== 'director') {
+    card.style.display = 'none';
+  } else {
+    card.style.display = pending.length ? '' : 'none';
+  }
+  count.textContent = pending.length;
+  if (summaryCount) summaryCount.textContent = pending.length;
+
+  const renderItem = function (tx) {
+    const account = getAccountById(tx.virtualId || tx.accountId);
+    const accountName = account ? account.name : 'Основной счёт';
+    const createdBy = tx.createdBy ? 'Отправил: ' + tx.createdBy : '';
+    const actionButtons = user && user.role === 'director'
+      ? '<div style="display:flex;gap:0.5rem;flex-wrap:wrap;justify-content:flex-end;">' +
+          '<button class="btn btn-sm btn-primary" onclick="approvePendingPayment(\'' + tx.id + '\')">✓ Подтвердить</button>' +
+          '<button class="btn btn-sm btn-danger" onclick="rejectPendingPayment(\'' + tx.id + '\')">✕ Отклонить</button>' +
+        '</div>'
+      : '';
+
+    return '<div style="padding:0.9rem 1.5rem;border-bottom:1px solid var(--light);display:flex;align-items:center;gap:0.75rem;justify-content:space-between;">' +
+      '<div style="flex:1;"><div style="font-size:0.83rem;font-weight:700;">' + tx.description + '</div>' +
+      '<div style="font-size:0.72rem;color:var(--muted);">' + accountName + ' · ' + formatCurrency(tx.amount, tx.currency) + '</div>' +
+      (createdBy ? '<div style="font-size:0.70rem;color:var(--muted);margin-top:0.35rem;">' + createdBy + '</div>' : '') +
+      '</div>' +
+      actionButtons +
+    '</div>';
+  };
+
+  if (list) {
+    if (!pending.length) {
+      list.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted);">Нет заявок на подтверждение.</div>';
+    } else {
+      list.innerHTML = pending.map(renderItem).join('');
+    }
+  }
+
+  if (summary) {
+    if (!pending.length) {
+      summary.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted);">Нет заявок на подтверждение.</div>';
+    } else {
+      summary.innerHTML = pending.slice(0, 3).map(renderItem).join('');
+    }
+  }
+}
+
+function renderLatestTransactions() {
+  const table = document.getElementById('latest-transactions-body');
+  if (!table) return;
+  const rows = TRANSACTIONS.slice().sort(function (a, b) {
+    return new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date);
+  }).slice(0, 5);
+  if (!rows.length) {
+    table.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:1rem;">Нет транзакций.</td></tr>';
+    return;
+  }
+  table.innerHTML = rows.map(function (tx) {
+    const created = tx.createdAt ? new Date(tx.createdAt) : null;
+    const datetime = created ? created.toLocaleString('ru-RU', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—';
+    return '<tr>' +
+      '<td>' + datetime + '</td>' +
+      '<td>' + tx.description + '</td>' +
+      '<td>' + tx.counterparty + '</td>' +
+      '<td>' + getStatusBadge(tx.status) + '</td>' +
+      '<td class="' + (isAmountNegative(tx.direction) ? 'amt-neg' : 'amt-pos') + '">' + (isAmountNegative(tx.direction) ? '−' : '+') + formatCurrency(tx.amount, tx.currency) + '</td>' +
+    '</tr>';
+  }).join('');
+}
+
+function renderTransferHistory() {
+  const table = document.getElementById('transfer-history-body');
+  if (!table) return;
+  const rows = TRANSACTIONS.slice().sort(function (a, b) {
+    return new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date);
+  }).slice(0, 3);
+  if (!rows.length) {
+    table.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--muted);padding:1rem;">Нет завершённых переводов.</td></tr>';
+    return;
+  }
+  table.innerHTML = rows.map(function (tx) {
+    return '<tr>' +
+      '<td>' + tx.counterparty + '</td>' +
+      '<td class="' + (isAmountNegative(tx.direction) ? 'amt-neg' : 'amt-pos') + '">' + (isAmountNegative(tx.direction) ? '−' : '+') + formatCurrency(tx.amount, tx.currency) + '</td>' +
+      '<td>' + getStatusBadge(tx.status) + '</td>' +
+    '</tr>';
+  }).join('');
+}
+
+function renderStatementTable() {
+  const table = document.getElementById('statement-table-body');
+  if (!table) return;
+  const rows = getFilteredTransactions();
+  if (!rows.length) {
+    table.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:1rem;">Не найдено транзакций.</td></tr>';
+    return;
+  }
+  table.innerHTML = rows.map(function (tx) {
+    const debit = isAmountNegative(tx.direction) ? formatCurrency(tx.amount, tx.currency) : '—';
+    const credit = isAmountNegative(tx.direction) ? '—' : formatCurrency(tx.amount, tx.currency);
+    const balance = tx.balanceAfter ? formatCurrency(tx.balanceAfter, tx.currency) : '—';
+    const created = tx.createdAt ? new Date(tx.createdAt) : null;
+    const datetime = created ? created.toLocaleString('ru-RU', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—';
+    return '<tr>' +
+      '<td>' + datetime + '</td>' +
+      '<td class="mono">' + (tx.document || tx.id) + '</td>' +
+      '<td>' + tx.description + '</td>' +
+      '<td>' + tx.counterparty + '</td>' +
+      '<td class="' + (debit !== '—' ? 'amt-neg' : '') + '">' + debit + '</td>' +
+      '<td class="' + (credit !== '—' ? 'amt-pos' : '') + '">' + credit + '</td>' +
+      '<td>' + balance + '</td>' +
+      '<td>' + getStatusBadge(tx.status) + '</td>' +
+    '</tr>';
+  }).join('');
+}
+
+function updatePaymentSourceOptions() {
+  const select = document.getElementById('payment-source-account');
+  if (!select) return;
+  const user = getCurrentUser();
+  const accounts = getAccessibleAccounts(user);
+  select.innerHTML = accounts.map(function (acct) {
+    return '<option value="' + acct.id + '">' + acct.name + ' · ' + formatCurrency(acct.balance, acct.currency) + ' (' + acct.currency + ')</option>';
+  }).join('');
+}
+
+function updateStatementAccountOptions() {
+  const select = document.getElementById('statement-account');
+  if (!select) return;
+  const user = getCurrentUser();
+  const accounts = getAccessibleAccounts(user);
+  select.innerHTML = '<option value="all">Все счета</option>' + accounts.map(function (acct) {
+    return '<option value="' + acct.id + '">' + acct.name + '</option>';
+  }).join('');
+}
+
+function refreshTransferForm() {
+  const today = new Date();
+  const iso = today.toISOString().slice(0, 10);
+  const dateInput = document.getElementById('payment-date');
+  const amountCurrency = document.getElementById('payment-currency-label');
+  if (dateInput && !dateInput.value) dateInput.value = iso;
+  const currencySelect = document.getElementById('payment-currency');
+  if (currencySelect) {
+    currencySelect.onchange = function () {
+      if (amountCurrency) amountCurrency.textContent = this.value;
+    };
+  }
+  const alertAccountant = document.getElementById('transfer-alert-accountant');
+  const user = getCurrentUser();
+  if (user && user.role === 'accountant') {
+    if (alertAccountant) alertAccountant.style.display = '';
+  } else {
+    if (alertAccountant) alertAccountant.style.display = 'none';
+  }
+}
+
+function updateDashboardClock() {
+  const clock = document.getElementById('dash-clock');
+  if (!clock) return;
+  const now = new Date();
+  clock.textContent = now.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+}
+
+function renderAppState() {
+  updateDashboardSummary();
+  renderVirtualAccounts();
+  renderPendingPayments();
+  renderLatestTransactions();
+  renderTransferHistory();
+  updatePaymentSourceOptions();
+  updateStatementAccountOptions();
+  updateStatementDateDefaults();
+  applyStatementFilters(true);
+  renderAnalytics();
+  renderAudit();
+  refreshTransferForm();
+}
+
+function applyStatementFilters(silent) {
+  renderStatementTable();
+  if (!silent) showToast('success', 'Фильтры применены', 'Список выписок обновлён.');
+}
+
+function saveDraftPayment() {
+  showToast('success', 'Черновик сохранён', 'Поля платежа сохранены в текущей сессии.');
+}
+
+function submitPayment() {
+  const user = getCurrentUser();
+  if (!user) {
+    showToast('error', 'Необходимо войти', 'Пожалуйста, войдите в систему перед созданием платежа.');
+    return;
+  }
+  const sourceAccount = document.getElementById('payment-source-account');
+  const iban = document.getElementById('payment-recipient-iban');
+  const recipientName = document.getElementById('payment-recipient-name');
+  const amountEl = document.getElementById('payment-amount');
+  const typeEl = document.getElementById('payment-type');
+  const purpose = document.getElementById('payment-purpose');
+  const currency = document.getElementById('payment-currency');
+  const dateInput = document.getElementById('payment-date');
+
+  const sourceAccountId = sourceAccount ? sourceAccount.value : 'main';
+  const amount = amountEl ? Number(amountEl.value) : 0;
+  const txType = typeEl ? typeEl.value : 'payment';
+  const description = purpose ? purpose.value.trim() : '';
+  const recipient = recipientName ? recipientName.value.trim() : '';
+  const ib = iban ? iban.value.trim() : '';
+  const dateValue = dateInput ? dateInput.value : new Date().toISOString().slice(0, 10);
+
+  if (!ib || !recipient || !description || !amount || amount <= 0) {
+    showToast('error', 'Ошибка заполнения', 'Заполните IBAN, получателя, сумму и назначение платежа.');
+    return;
+  }
+  const selectedAccount = getAccountById(sourceAccountId);
+  if (!selectedAccount) {
+    showToast('error', 'Счёт не найден', 'Выберите счёт списания.');
+    return;
+  }
+  if (currency && currency.value !== selectedAccount.currency) {
+    showToast('warning', 'Неподдерживаемая валюта', 'Выберите валюту счёта ' + selectedAccount.currency + '.');
+    return;
+  }
+  const needsApproval = user.role !== 'director';
+  const status = needsApproval ? 'pending' : 'approved';
+  const txId = 'TX-' + Date.now();
+  const actualAccountId = selectedAccount.id === 'main' ? 'main' : 'main';
+  const newTx = {
+    id: txId,
+    document: txId,
+    createdAt: dateValue + 'T' + new Date().toTimeString().slice(0,5) + ':00',
+    type: txType,
+    description: description,
+    counterparty: recipient,
+    accountId: actualAccountId,
+    virtualId: selectedAccount.id !== 'main' ? selectedAccount.id : null,
+    direction: 'out',
+    amount: amount,
+    currency: currency ? currency.value : 'KZT',
+    status: status,
+    createdBy: user.firstName + ' ' + user.lastName,
+    approvedBy: needsApproval ? null : user.firstName + ' ' + user.lastName,
+    balanceAfter: COMPANY_ROOT_ACCOUNT.balance - amount
+  };
+  TRANSACTIONS.unshift(newTx);
+
+  if (!needsApproval) {
+    if (selectedAccount.id === 'main') {
+      COMPANY_ROOT_ACCOUNT.balance -= amount;
+      COMPANY_ROOT_ACCOUNT.available -= amount;
+    } else {
+      selectedAccount.balance -= amount;
+      COMPANY_ROOT_ACCOUNT.balance -= amount;
+      COMPANY_ROOT_ACCOUNT.available -= amount;
+    }
+    showToast('success', 'Платёж выполнен', 'Средства списаны и добавлены в выписку.');
+  } else {
+    showToast('info', 'Платёж отправлен на рассмотрение', 'Директор получит заявку на подтверждение.');
+  }
+  renderAppState();
+}
+
+function approvePendingPayment(txId) {
+  const user = getCurrentUser();
+  if (!user || user.role !== 'director') {
+    showToast('warning', 'Доступ запрещён', 'Только директор может подтверждать платежи.');
+    return;
+  }
+  const tx = TRANSACTIONS.find(function (item) { return item.id === txId; });
+  if (!tx || tx.status !== 'pending') return;
+  const account = getAccountById(tx.virtualId || tx.accountId);
+  if (!account) {
+    showToast('error', 'Ошибка', 'Не удалось найти счёт для платежа.');
+    return;
+  }
+  if (account.id !== 'main' && account.balance < tx.amount) {
+    showToast('error', 'Недостаточно средств', 'На выбранном виртуальном счёте недостаточно средств для этого платежа.');
+    return;
+  }
+  if (account.id === 'main' && COMPANY_ROOT_ACCOUNT.balance < tx.amount) {
+    showToast('error', 'Недостаточно средств', 'На основном счёте недостаточно средств для этого платежа.');
+    return;
+  }
+  tx.status = 'approved';
+  tx.approvedBy = user.firstName + ' ' + user.lastName;
+  tx.balanceAfter = (account.id === 'main' ? COMPANY_ROOT_ACCOUNT.balance - tx.amount : account.balance - tx.amount);
+  if (account.id !== 'main') {
+    account.balance -= tx.amount;
+  }
+  COMPANY_ROOT_ACCOUNT.balance -= tx.amount;
+  COMPANY_ROOT_ACCOUNT.available -= tx.amount;
+  syncNotificationsForPayment(txId);
+  showToast('success', 'Платёж подтверждён', 'Средства списаны и добавлены в выписку.');
+  renderAppState();
+}
+
+function rejectPendingPayment(txId) {
+  const user = getCurrentUser();
+  if (!user || user.role !== 'director') {
+    showToast('warning', 'Доступ запрещён', 'Только директор может отклонять платежи.');
+    return;
+  }
+  const tx = TRANSACTIONS.find(function (item) { return item.id === txId; });
+  if (!tx || tx.status !== 'pending') return;
+  tx.status = 'rejected';
+  syncNotificationsForPayment(txId);
+  showToast('info', 'Платёж отклонён', 'Заявка отклонена директором.');
+  renderAppState();
+}
+
+function exportStatementExcel() {
+  const rows = getFilteredTransactions();
+  if (!rows.length) {
+    showToast('warning', 'Нет данных', 'Нет транзакций для экспорта.');
+    return;
+  }
+  let tableHtml = '<table><tr><th>Дата</th><th>Документ</th><th>Описание</th><th>Контрагент</th><th>Дебет</th><th>Кредит</th><th>Остаток</th><th>Статус</th><th>Автор</th><th>Подтвердил</th></tr>';
+  rows.forEach(function (tx) {
+    const debit = isAmountNegative(tx.direction) ? formatCurrency(tx.amount, tx.currency) : '—';
+    const credit = isAmountNegative(tx.direction) ? '—' : formatCurrency(tx.amount, tx.currency);
+    tableHtml += '<tr>' +
+      '<td>' + (tx.createdAt ? tx.createdAt.slice(0,10) : '') + '</td>' +
+      '<td>' + (tx.document || tx.id) + '</td>' +
+      '<td>' + tx.description + '</td>' +
+      '<td>' + tx.counterparty + '</td>' +
+      '<td>' + debit + '</td>' +
+      '<td>' + credit + '</td>' +
+      '<td>' + (tx.balanceAfter ? formatCurrency(tx.balanceAfter, tx.currency) : '—') + '</td>' +
+      '<td>' + tx.status + '</td>' +
+      '<td>' + (tx.createdBy || '—') + '</td>' +
+      '<td>' + (tx.approvedBy || '—') + '</td>' +
+    '</tr>';
+  });
+  tableHtml += '</table>';
+  downloadBlob('\ufeff' + tableHtml, 'application/vnd.ms-excel;charset=utf-8;', 'Выписка.xls');
+}
+
+function exportStatementPDF() {
+  const rows = getFilteredTransactions();
+  if (!rows.length) {
+    showToast('warning', 'Нет данных', 'Нет транзакций для экспорта.');
+    return;
+  }
+  const html = '<!doctype html><html><head><meta charset="utf-8"><title>Выписка</title><style>body{font-family:sans-serif;padding:20px;color:#18263f;}table{width:100%;border-collapse:collapse;}th,td{padding:8px;border:1px solid #dfe3e8;text-align:left;font-size:12px;}th{background:#f5f7fb;font-weight:700;}</style></head><body>' +
+    '<h2>Выписка по операциям</h2>' +
+    '<table><tr><th>Дата</th><th>Документ</th><th>Описание</th><th>Контрагент</th><th>Сумма</th><th>Статус</th><th>Автор</th><th>Подтвердил</th></tr>' +
+    rows.map(function (tx) {
+      return '<tr><td>' + (tx.createdAt ? tx.createdAt.slice(0,10) : '') + '</td>' +
+        '<td>' + (tx.document || tx.id) + '</td>' +
+        '<td>' + tx.description + '</td>' +
+        '<td>' + tx.counterparty + '</td>' +
+        '<td>' + (isAmountNegative(tx.direction) ? '−' : '+') + formatCurrency(tx.amount, tx.currency) + '</td>' +
+        '<td>' + tx.status + '</td>' +
+        '<td>' + (tx.createdBy || '—') + '</td>' +
+        '<td>' + (tx.approvedBy || '—') + '</td></tr>';
+    }).join('') +
+    '</table></body></html>';
+  const win = window.open('', '_blank');
+  if (win) {
+    win.document.write(html);
+    win.document.close();
+    win.focus();
+    setTimeout(function () { win.print(); }, 300);
+  }
+  showToast('info', 'PDF готовится', 'Откроется окно печати.');
+}
+
 function findRoleConfig(role) {
   if (!role) return null;
-  const key = role.toString().toLowerCase().replace(/\s+/g, '_');
+  const key = role.toString().toLowerCase().trim();
   return ROLE_CONFIG[key] || null;
 }
 
@@ -432,15 +1261,26 @@ async function setCurrentUser(user) {
   }
   setStoredUser(user);
   renderUser(user);
+  renderAppState();
+  if (typeof loadNotifications === 'function') loadNotifications();
 }
 
 function clearCurrentUser() {
-  localStorage.removeItem(AUTH_TOKEN_KEY);
+  sessionStorage.removeItem(AUTH_TOKEN_KEY);
   setCurrentUser(null);
 }
 
 async function apiFetch(path, options = {}) {
-  const url = path.startsWith('http') ? path : (path.startsWith('/') ? API_BASE + path : API_BASE + '/' + path);
+  let url;
+  if (path.startsWith('http')) {
+    url = path;
+  } else if (path.startsWith('/api')) {
+    url = path; // уже полный прокси-путь
+  } else if (path.startsWith('/')) {
+    url = API_BASE + path; // /login → /api/login
+  } else {
+    url = API_BASE + '/' + path; // login → /api/login
+  }
   const headers = Object.assign({}, getAuthHeaders(), options.headers || {});
   return fetch(url, Object.assign({}, options, { headers }));
 }
@@ -497,6 +1337,66 @@ function submitRegistration() {
 
   closeModal('modal-reg-step1');
   openModal('modal-reg-step2');
+
+  // Show actual phone in step 2 and send OTP
+  const phoneDisplay = document.getElementById('otp-phone-display');
+  if (phoneDisplay) phoneDisplay.textContent = '📱 Отправлено на: ' + registrationData.phone;
+  sendOtp();
+}
+
+async function sendOtp() {
+  try {
+    const resp = await apiFetch('/otp/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: registrationData.phone })
+    });
+    const p = await resp.json().catch(function() { return {}; });
+    if (!resp.ok) {
+      showToast('error', 'Ошибка OTP', p.message || 'Не удалось отправить SMS.');
+    } else {
+      // В dev-режиме код виден в консоли сервера и в ответе
+      if (p._devCode) {
+        showToast('info', 'DEV: Код верификации', 'Код: ' + p._devCode + ' (или введите 000000)');
+      } else {
+        showToast('success', 'SMS отправлено', 'Введите код из SMS');
+      }
+    }
+  } catch (e) {
+    showToast('error', 'Ошибка', 'Сервер недоступен. Запустите npm start.');
+  }
+}
+
+async function submitRegStep2() {
+  const inputs = document.querySelectorAll('#modal-reg-step2 .otp-input');
+  const code = Array.from(inputs).map(function(i) { return i.value.trim(); }).join('');
+  if (code.length !== 6) {
+    showToast('warning', 'Введите код', 'Введите все 6 цифр из SMS.');
+    return;
+  }
+
+  const btn = document.querySelector('#modal-reg-step2 .btn-primary');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Проверка...'; }
+
+  try {
+    const resp = await apiFetch('/otp/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phone: registrationData.phone, code: code })
+    });
+    const payload = await resp.json().catch(function() { return {}; });
+
+    if (resp.ok && payload.verified) {
+      closeModal('modal-reg-step2');
+      openModal('modal-reg-step3');
+    } else {
+      showToast('error', 'Неверный код', payload.message || 'Код неверный или истёк. Попробуйте ещё раз.');
+    }
+  } catch (e) {
+    showToast('error', 'Ошибка', 'Сервер недоступен.');
+  } finally {
+    if (btn) { btn.disabled = false; btn.textContent = 'Подтвердить →'; }
+  }
 }
 
 function resetRegistrationForm() {
@@ -698,16 +1598,802 @@ async function finishReg() {
   }
 }
 
-/* ---------- Payments ---------- */
-function submitPayment() {
-  closeModal('modal-new-payment');
-  showToast('success', 'Платёж отправлен', 'Платёж поставлен в очередь на обработку.');
+/* ---------- Employees ---------- */
+
+// Normalize snake_case API fields → camelCase used throughout the UI
+function normalizeEmployee(emp) {
+  return {
+    id:         emp.id || emp.userId || '',
+    userId:     emp.id || emp.userId || '',
+    firstName:  emp.first_name  || emp.firstName  || '',
+    lastName:   emp.last_name   || emp.lastName   || '',
+    patronymic: emp.patronymic  || '',
+    email:      emp.email       || '',
+    iin:        emp.iin         || '',
+    phone:      emp.phone       || '',
+    position:   emp.position    || '',
+    role:       emp.role        || '',
+    status:     emp.status      || '',
+    createdAt:  emp.created_at  || emp.createdAt  || null,
+    bin:        emp.bin         || (emp.company && emp.company.bin) || ''
+  };
+}
+
+const EMP_AVA_STYLES = [
+  'background:linear-gradient(135deg,#c9a84c,#e2c06a);color:#0c2340;',
+  'background:#eaf1fb;color:var(--navy2);',
+  'background:var(--green-bg);color:var(--green);',
+  'background:var(--blue-bg);color:var(--navy2);',
+  'background:var(--orange-bg);color:var(--orange);',
+];
+
+function empAvaStyle(seed) {
+  const n = seed ? (seed.charCodeAt ? seed.charCodeAt(0) : parseInt(seed, 16) || 0) : 0;
+  return EMP_AVA_STYLES[Math.abs(n) % EMP_AVA_STYLES.length];
+}
+
+function empRoleBadge(role) {
+  const cfg = findRoleConfig(role);
+  return cfg
+    ? '<span class="badge ' + cfg.badge + '">' + cfg.label + '</span>'
+    : (role ? '<span class="badge">' + role + '</span>' : '');
+}
+
+function empStatusEl(status) {
+  if (!status) return '<span style="color:var(--muted);">—</span>';
+  const s = status.toLowerCase();
+  if (s === 'active' || s === 'approved') return '<span style="color:var(--green);">● Активен</span>';
+  if (s === 'blocked' || s === 'inactive') return '<span style="color:var(--red);">● Заблокирован</span>';
+  if (s === 'pending') return '<span style="color:#a67c00;">● На рассмотрении</span>';
+  return '<span style="color:var(--muted);">' + status + '</span>';
+}
+
+function renderEmployeeCard(emp) {
+  const user = getStoredUser();
+  const isDirector = user && user.role === 'director';
+  const fullName = [emp.lastName, emp.firstName, emp.patronymic].filter(Boolean).join(' ') || emp.name || '—';
+  const initials = getInitials(emp.firstName || '', emp.lastName || '');
+  const userId = emp.id || emp.userId || '';
+  const lastLogin = emp.lastLogin ? new Date(emp.lastLogin).toLocaleDateString('ru-KZ') : '—';
+  const safeId = userId.replace(/'/g, '');
+  const safeName = fullName.replace(/'/g, '');
+
+  const docsBtn = isDirector
+    ? '<button class="btn btn-sm btn-ghost" onclick="viewEmployeeDocs(\'' + safeId + '\',\'' + safeName + '\')">📄 Доп.</button>'
+    : '';
+
+  return '<div class="emp-card">' +
+    '<div class="emp-card-header">' +
+      '<div class="emp-ava" style="' + empAvaStyle(userId) + '">' + initials + '</div>' +
+      '<div><div class="emp-name">' + fullName + '</div><div class="emp-pos">' + (emp.position || '') + '</div>' + empRoleBadge(emp.role) + '</div>' +
+    '</div>' +
+    '<div class="emp-info">' +
+      '<div class="emp-info-item"><div class="emp-info-lbl">ИИН</div><div class="emp-info-val">' + (emp.iin || '—') + '</div></div>' +
+      '<div class="emp-info-item"><div class="emp-info-lbl">Телефон</div><div class="emp-info-val">' + (emp.phone || '—') + '</div></div>' +
+      '<div class="emp-info-item"><div class="emp-info-lbl">Статус</div><div class="emp-info-val">' + empStatusEl(emp.status) + '</div></div>' +
+      '<div class="emp-info-item"><div class="emp-info-lbl">Последний вход</div><div class="emp-info-val">' + lastLogin + '</div></div>' +
+    '</div>' +
+    '<div class="emp-actions">' +
+      docsBtn +
+      '<button class="btn btn-sm btn-ghost" onclick="openModal(\'modal-employee-perms\')">Права</button>' +
+    '</div>' +
+  '</div>';
+}
+
+function renderPendingCard(emp) {
+  const fullName = [emp.lastName, emp.firstName, emp.patronymic].filter(Boolean).join(' ') || emp.name || '—';
+  const initials = getInitials(emp.firstName || '', emp.lastName || '');
+  const userId = emp.id || emp.userId || '';
+  const safeId = userId.replace(/'/g, '');
+  const safeName = fullName.replace(/'/g, '');
+
+  return '<div class="emp-card" style="border-color:rgba(166,124,0,0.35);background:#fffbf0;">' +
+    '<div class="emp-card-header">' +
+      '<div class="emp-ava" style="background:#fff8e1;color:#a67c00;">' + initials + '</div>' +
+      '<div>' +
+        '<div class="emp-name">' + fullName + '</div>' +
+        '<div class="emp-pos">' + (emp.position || '—') + '</div>' +
+        '<span class="badge badge-pending">На рассмотрении</span>' +
+      '</div>' +
+    '</div>' +
+    '<div class="emp-info">' +
+      '<div class="emp-info-item"><div class="emp-info-lbl">ИИН</div><div class="emp-info-val">' + (emp.iin || '—') + '</div></div>' +
+      '<div class="emp-info-item"><div class="emp-info-lbl">Должность</div><div class="emp-info-val">' + (emp.position || '—') + '</div></div>' +
+    '</div>' +
+    '<div style="display:flex;gap:0.65rem;flex-wrap:wrap;align-items:center;">' +
+      '<button class="btn btn-sm btn-primary" style="flex:1;" onclick="openEmpDetailFromMap(\'' + safeId + '\')">📋 Просмотр и подтверждение</button>' +
+      '<button class="btn btn-sm btn-danger" onclick="_doRejectEmployee(\'' + safeId + '\',\'' + safeName + '\',null)">✕</button>' +
+    '</div>' +
+  '</div>';
+}
+
+let _pendingEmpMap = {};
+
+async function loadEmployees() {
+  const user = getStoredUser();
+  const companyId = user && (user.companyId || (user.company && user.company.id));
+  const grid = document.getElementById('emp-list');
+  const pendingSection = document.getElementById('emp-pending-section');
+  const pendingList = document.getElementById('emp-pending-list');
+  const pendingCount = document.getElementById('emp-pending-count');
+
+  if (!companyId) {
+    if (grid) grid.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted);">Не удалось определить компанию.</div>';
+    return;
+  }
+  if (grid) grid.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted);">Загрузка...</div>';
+
+  try {
+    const resp = await apiFetch('/employees/' + companyId);
+    if (!resp.ok) {
+      if (grid) grid.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted);">Не удалось загрузить список сотрудников.</div>';
+      showToast('error', 'Ошибка', 'Не удалось загрузить список сотрудников.');
+      return;
+    }
+    const data = await resp.json().catch(() => []);
+    const raw = Array.isArray(data) ? data : (data.employees || data.data || []);
+    const employees = raw.map(normalizeEmployee);
+
+    const isDirector = user && user.role === 'director';
+    const pending = employees.filter(function(e) {
+      return e.status && e.status.toLowerCase() === 'pending';
+    });
+    const active = employees.filter(function(e) {
+      return !e.status || e.status.toLowerCase() !== 'pending';
+    });
+
+    // Populate map for detail modal access from pending cards
+    _pendingEmpMap = {};
+    pending.forEach(function(emp) {
+      if (emp.id) _pendingEmpMap[emp.id] = emp;
+    });
+
+    if (pendingSection) {
+      if (isDirector && pending.length > 0) {
+        pendingSection.style.display = '';
+        if (pendingCount) pendingCount.textContent = pending.length;
+        if (pendingList) pendingList.innerHTML = pending.map(renderPendingCard).join('');
+      } else {
+        pendingSection.style.display = 'none';
+      }
+    }
+
+    if (grid) {
+      if (active.length === 0) {
+        grid.innerHTML = employees.length === 0
+          ? '<div style="text-align:center;padding:2rem;color:var(--muted);">Сотрудники не найдены.</div>'
+          : '';
+      } else {
+        grid.innerHTML = active.map(renderEmployeeCard).join('') +
+          '<div class="emp-card" style="border:2px dashed var(--light);background:transparent;display:flex;align-items:center;justify-content:center;min-height:200px;">' +
+            '<div style="text-align:center;cursor:pointer;" onclick="openModal(\'modal-add-employee\')">' +
+              '<div style="font-size:2.5rem;margin-bottom:0.75rem;opacity:0.4;">+</div>' +
+              '<div style="font-size:0.85rem;font-weight:700;color:var(--muted);">Добавить сотрудника</div>' +
+            '</div>' +
+          '</div>';
+      }
+    }
+  } catch (e) {
+    if (grid) grid.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted);">Ошибка загрузки.</div>';
+    console.error('loadEmployees error:', e);
+  }
+}
+
+async function approveEmployee(userId, name) {
+  const roleEl = document.getElementById('role-select-' + userId);
+  const role = roleEl ? roleEl.value : '';
+  if (!role) {
+    showToast('warning', 'Выберите роль', 'Укажите роль сотрудника перед одобрением.');
+    return;
+  }
+
+  try {
+    const resp = await apiFetch('/employees/approve', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: userId, role: role })
+    });
+    const payload = await resp.json().catch(() => ({}));
+    if (resp.ok) {
+      showToast('success', 'Сотрудник одобрен', name + ' добавлен в систему.');
+      loadEmployees();
+    } else {
+      showToast('error', 'Ошибка', payload.message || payload.error || 'Не удалось одобрить сотрудника.');
+    }
+  } catch (e) {
+    showToast('error', 'Ошибка', 'Сервер недоступен.');
+    console.error('approveEmployee error:', e);
+  }
+}
+
+async function rejectEmployee(userId, name) {
+  if (!window.confirm('Отклонить заявку сотрудника «' + name + '»?')) return;
+
+  try {
+    const resp = await apiFetch('/employees/reject', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: userId })
+    });
+    const payload = await resp.json().catch(() => ({}));
+    if (resp.ok) {
+      showToast('info', 'Заявка отклонена', 'Заявка ' + name + ' отклонена.');
+      loadEmployees();
+    } else {
+      showToast('error', 'Ошибка', payload.message || payload.error || 'Не удалось отклонить заявку.');
+    }
+  } catch (e) {
+    showToast('error', 'Ошибка', 'Сервер недоступен.');
+    console.error('rejectEmployee error:', e);
+  }
+}
+
+async function viewEmployeeDocs(userId, name) {
+  const modal = document.getElementById('modal-employee-docs');
+  const titleEl = document.getElementById('emp-docs-name');
+  const bodyEl = document.getElementById('emp-docs-body');
+  if (!modal) return;
+
+  if (titleEl) titleEl.textContent = name || '';
+  if (bodyEl) bodyEl.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted);">Загрузка документов...</div>';
+  openModal('modal-employee-docs');
+
+  try {
+    const resp = await apiFetch('/documents/' + userId);
+    if (!resp.ok) {
+      if (bodyEl) bodyEl.innerHTML = '<div class="alert alert-warning">Документы не найдены или доступ запрещён.</div>';
+      return;
+    }
+    const data = await resp.json().catch(() => []);
+    const docs = Array.isArray(data) ? data : (data.documents || data.docs || []);
+
+    if (!docs.length) {
+      if (bodyEl) bodyEl.innerHTML = '<div class="alert alert-info">Документы не загружены.</div>';
+      return;
+    }
+
+    if (bodyEl) {
+      bodyEl.innerHTML = docs.map(function(doc) {
+        const docName = doc.name || doc.fileName || doc.type || 'Документ';
+        const url = doc.url || doc.fileUrl || doc.path || '';
+        const type = doc.type || doc.documentType || '';
+        return '<div style="display:flex;align-items:center;gap:0.75rem;padding:0.85rem;background:var(--off);border-radius:8px;margin-bottom:0.5rem;">' +
+          '<span style="font-size:1.4rem;">📄</span>' +
+          '<div style="flex:1;">' +
+            '<div style="font-weight:700;font-size:0.85rem;">' + docName + '</div>' +
+            (type ? '<div style="font-size:0.72rem;color:var(--muted);">' + type + '</div>' : '') +
+          '</div>' +
+          (url ? '<a href="' + url + '" target="_blank" rel="noopener" class="btn btn-sm btn-ghost">Открыть</a>' : '<span style="font-size:0.75rem;color:var(--muted);">Недоступно</span>') +
+        '</div>';
+      }).join('');
+    }
+  } catch (e) {
+    if (bodyEl) bodyEl.innerHTML = '<div class="alert alert-warning">Ошибка загрузки документов.</div>';
+    console.error('viewEmployeeDocs error:', e);
+  }
+}
+
+/* ---------- Notifications ---------- */
+
+// Local cache populated from GET /api/notifications
+let NOTIFICATIONS = [];
+let _notifFilter = 'all';
+let AUDIT_EXTRA_EVENTS = [];
+const AUDIT_CLIENT_IP = '178.88.42.156';
+
+function auditRoleBadge(role) {
+  if (!role) return '';
+  const key = role.toLowerCase();
+  if (key === 'director' || key === 'директор') return '<span class="badge badge-director" style="font-size:0.55rem;">Директор</span>';
+  if (key.includes('fin')) return '<span class="badge badge-findirector" style="font-size:0.55rem;">Фин.дир</span>';
+  if (key.includes('manager') || key.includes('рук')) return '<span class="badge badge-manager" style="font-size:0.55rem;">Рук-ль</span>';
+  if (key.includes('accountant') || key.includes('бух')) return '<span class="badge badge-accountant" style="font-size:0.55rem;">Бухг.</span>';
+  return '<span class="badge" style="font-size:0.55rem;">' + role + '</span>';
+}
+
+function getAuditRows() {
+  const txRows = TRANSACTIONS.reduce(function (rows, tx) {
+    const createdAt = tx.createdAt ? new Date(tx.createdAt) : new Date();
+    rows.push({
+      timestamp: createdAt,
+      userName: tx.createdBy || 'Неизвестно',
+      userRole: '',
+      action: 'Создание платежа',
+      object: tx.document || tx.id,
+      ip: AUDIT_CLIENT_IP,
+      result: tx.status === 'approved' ? '✓ Успех' : tx.status === 'pending' ? '⏳ Ожидает' : '✗ Отклонён'
+    });
+    if (tx.status === 'approved' && tx.approvedBy && tx.approvedBy !== tx.createdBy) {
+      rows.push({
+        timestamp: createdAt,
+        userName: tx.approvedBy,
+        userRole: 'director',
+        action: 'Подтверждение платежа',
+        object: tx.document || tx.id,
+        ip: AUDIT_CLIENT_IP,
+        result: '✓ Успех'
+      });
+    }
+    return rows;
+  }, []);
+  return txRows.concat(AUDIT_EXTRA_EVENTS).sort(function (a, b) {
+    return b.timestamp - a.timestamp;
+  });
+}
+
+function logAuditEvent(event) {
+  const timestamp = event.timestamp ? new Date(event.timestamp) : new Date();
+  AUDIT_EXTRA_EVENTS.unshift({
+    timestamp: timestamp,
+    userName: event.userName || 'Неизвестно',
+    userRole: event.userRole || '',
+    action: event.action || 'Действие',
+    object: event.object || '—',
+    ip: event.ip || AUDIT_CLIENT_IP,
+    result: event.result || '✓ Успех'
+  });
+  if (AUDIT_EXTRA_EVENTS.length > 80) AUDIT_EXTRA_EVENTS.length = 80;
+  renderAudit();
+}
+
+function renderAudit() {
+  const body = document.getElementById('audit-table-body');
+  if (!body) return;
+  const rows = getAuditRows();
+  if (!rows.length) {
+    body.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:1rem;">Нет записей аудита.</td></tr>';
+    return;
+  }
+  body.innerHTML = rows.slice(0, 40).map(function (evt) {
+    const time = evt.timestamp ? evt.timestamp.toLocaleString('ru-RU', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '—';
+    const role = auditRoleBadge(evt.userRole);
+    const resultClass = evt.result.includes('Успех') ? 'badge-active' : evt.result.includes('Ожидает') ? 'badge-pending' : evt.result.includes('Блок') || evt.result.includes('Ошибка') || evt.result.includes('Отклонён') ? 'badge-danger' : 'badge';
+    return '<tr><td>' + time + '</td><td>' + evt.userName + ' ' + role + '</td><td>' + evt.action + '</td><td>' + evt.object + '</td><td class="mono">' + evt.ip + '</td><td><span class="badge ' + resultClass + '" style="font-size:0.62rem;">' + evt.result + '</span></td></tr>';
+  }).join('');
+}
+
+function buildLocalNotifications() {
+  return TRANSACTIONS.filter(function (tx) { return tx.status === 'pending'; }).map(function (tx) {
+    const time = tx.createdAt ? new Date(tx.createdAt).toLocaleString('ru-RU', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' }) : new Date().toLocaleString('ru-RU', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
+    return {
+      id: 'local-notif-' + tx.id,
+      type: 'payment',
+      icon: '⚠️',
+      iconBg: 'var(--orange-bg)',
+      title: 'Требуется подтверждение платежа',
+      text: 'Платёж ' + (tx.document || tx.id) + ' на сумму ' + formatCurrency(tx.amount, tx.currency) + ' ожидает подтверждения. Получатель: ' + tx.counterparty + '.',
+      time: time,
+      read: false,
+      paymentId: tx.id,
+      action: { label: '✓ Подтвердить', style: 'btn-primary' }
+    };
+  });
+}
+
+function syncNotificationsForPayment(txId) {
+  NOTIFICATIONS.forEach(function (notif) {
+    if (notif.paymentId === txId) {
+      notif.read = true;
+      if (notif.id && notif.id.startsWith('local-notif-')) {
+        notif.title = 'Платёж подтверждён';
+        notif.text = 'Платёж ' + txId + ' был подтверждён директором.';
+        notif.action = null;
+      }
+    }
+  });
+}
+
+// Map API notification types → UI shape
+const NOTIF_TYPE_MAP = {
+  'NEW_EMPLOYEE_REQUEST': { type: 'employee', icon: '👤', iconBg: 'var(--gold-bg)',   title: 'Новая заявка на регистрацию' },
+  'PAYMENT_PENDING':      { type: 'payment',  icon: '⚠️', iconBg: 'var(--orange-bg)', title: 'Ожидает подтверждения платёж' },
+  'PAYMENT_RECEIVED':     { type: 'payment',  icon: '✅', iconBg: 'var(--green-bg)',  title: 'Поступление средств' },
+  'SYSTEM':               { type: 'system',   icon: '🔧', iconBg: 'var(--off)',        title: 'Системное уведомление' }
+};
+
+function mapApiNotification(n) {
+  const meta = NOTIF_TYPE_MAP[n.type] || { type: 'system', icon: 'ℹ️', iconBg: 'var(--off)', title: n.type };
+  const timeStr = n.created_at
+    ? new Date(n.created_at).toLocaleString('ru-KZ', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' })
+    : '—';
+  const notif = {
+    id:     n.id,
+    type:   meta.type,
+    icon:   meta.icon,
+    iconBg: meta.iconBg,
+    title:  meta.title,
+    text:   n.message || '',
+    time:   timeStr,
+    read:   !!n.is_read
+  };
+  // Attach employee data for NEW_EMPLOYEE_REQUEST
+  if (n.type === 'NEW_EMPLOYEE_REQUEST' && n.user) {
+    notif.userId   = n.user.id;
+    notif.userName = n.user.full_name || '';
+    notif.empData  = {
+      id:       n.user.id,
+      userId:   n.user.id,
+      firstName: (n.user.full_name || '').split(' ')[1] || '',
+      lastName:  (n.user.full_name || '').split(' ')[0] || '',
+      patronymic:(n.user.full_name || '').split(' ')[2] || '',
+      iin:       n.user.iin      || '',
+      position:  n.user.position || '',
+      status:    'pending'
+    };
+    notif.actionPayload = n.action_payload || {};
+  }
+  // Attach paymentId for PAYMENT_PENDING
+  if (n.type === 'PAYMENT_PENDING' && n.action_payload) {
+    notif.paymentId = n.action_payload.paymentId;
+    notif.action = { label: '✓ Подтвердить', style: 'btn-primary' };
+  }
+  return notif;
+}
+
+async function loadNotifications() {
+  try {
+    const resp = await apiFetch('/notifications');
+    if (!resp.ok) {
+      NOTIFICATIONS = buildLocalNotifications();
+      renderNotifications();
+      updateBellBadge();
+      return;
+    }
+    const data = await resp.json().catch(function() { return {}; });
+    const list = data.notifications || [];
+    if (list.length) {
+      NOTIFICATIONS = list.map(mapApiNotification);
+    } else {
+      NOTIFICATIONS = buildLocalNotifications();
+    }
+    renderNotifications();
+    updateBellBadge();
+  } catch (e) {
+    console.error('loadNotifications error:', e);
+    NOTIFICATIONS = buildLocalNotifications();
+    renderNotifications();
+    updateBellBadge();
+  }
+}
+
+function updateBellBadge() {
+  const badge = document.getElementById('notif-bell-badge');
+  const dot   = document.querySelector('#notif-bell .tb-dot');
+  const unread = NOTIFICATIONS.filter(function(n) { return !n.read; }).length;
+
+  if (badge) {
+    badge.textContent = unread > 9 ? '9+' : (unread || '');
+    badge.style.display = unread > 0 ? 'flex' : 'none';
+  }
+  if (dot) dot.style.display = unread > 0 ? '' : 'none';
+}
+
+function markNotifRead(id) {
+  const notif = NOTIFICATIONS.find(function(n) { return n.id === id; });
+  if (notif && !notif.read) {
+    notif.read = true;
+    renderNotifications();
+    updateBellBadge();
+    // Persist to API (fire-and-forget)
+    apiFetch('/notifications/' + id + '/read', { method: 'PATCH' }).catch(function() {});
+  }
+}
+
+function markAllNotifRead() {
+  NOTIFICATIONS.forEach(function(n) { n.read = true; });
+  renderNotifications();
+  updateBellBadge();
+  apiFetch('/notifications/read-all', { method: 'PATCH' }).catch(function() {});
+}
+
+function filterNotifications(cat) {
+  _notifFilter = cat;
+  document.querySelectorAll('[data-notif-filter]').forEach(function(btn) {
+    const active = btn.getAttribute('data-notif-filter') === cat;
+    btn.classList.toggle('btn-primary', active);
+    btn.classList.toggle('btn-ghost', !active);
+  });
+  renderNotifications();
+}
+
+function renderNotifications() {
+  const list = document.getElementById('notif-list');
+  if (!list) return;
+
+  const filtered = _notifFilter === 'all'
+    ? NOTIFICATIONS.slice()
+    : NOTIFICATIONS.filter(function(n) { return n.type === _notifFilter; });
+
+  // Update unread badge count in "Все" tab
+  const allBadge = document.getElementById('notif-unread-count');
+  const unread = NOTIFICATIONS.filter(function(n) { return !n.read; }).length;
+  if (allBadge) {
+    allBadge.textContent = unread;
+    allBadge.style.display = unread > 0 ? '' : 'none';
+  }
+
+  if (filtered.length === 0) {
+    list.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--muted);">Нет уведомлений в этой категории.</div>';
+    updateBellBadge();
+    return;
+  }
+
+  list.innerHTML = filtered.map(function(n) {
+    const unreadCls = n.read ? '' : ' unread';
+    const dot = n.read ? '' : '<span style="display:inline-block;width:7px;height:7px;background:var(--red);border-radius:50%;margin-left:5px;vertical-align:middle;flex-shrink:0;"></span>';
+
+    let actionHtml = '';
+    if (n.type === 'employee' && n.userId) {
+      const safeId = n.id.replace(/'/g, '');
+      actionHtml = '<button class="btn btn-sm btn-primary" style="flex-shrink:0;white-space:nowrap;" onclick="event.stopPropagation();openEmpDetail(\'' + safeId + '\')">Подробнее →</button>';
+    } else if (n.action) {
+      const handler = n.paymentId ? 'handleNotificationAction(\'' + n.id + '\')' : 'markNotifRead(\'' + n.id + '\')';
+      actionHtml = '<button class="btn btn-sm ' + n.action.style + '" style="flex-shrink:0;" onclick="event.stopPropagation();' + handler + '">' + n.action.label + '</button>';
+    }
+
+    return '<div class="notif-item' + unreadCls + '" onclick="markNotifRead(\'' + n.id + '\')" style="cursor:pointer;">' +
+      '<div class="notif-ico" style="background:' + n.iconBg + ';">' + n.icon + '</div>' +
+      '<div class="notif-body">' +
+        '<div class="notif-title" style="display:flex;align-items:center;">' + n.title + dot + '</div>' +
+        '<div class="notif-text">' + n.text + '</div>' +
+        '<div class="notif-time">' + n.time + '</div>' +
+      '</div>' +
+      actionHtml +
+    '</div>';
+  }).join('');
+
+  updateBellBadge();
+}
+
+function handleNotificationAction(notifId) {
+  const notif = NOTIFICATIONS.find(function (n) { return n.id === notifId; });
+  if (!notif) return;
+  if (notif.type === 'payment' && notif.paymentId) {
+    const user = getCurrentUser();
+    if (!user || user.role !== 'director') {
+      showToast('warning', 'Доступ запрещён', 'Только директор может подтверждать платежи.');
+      return;
+    }
+    approvePendingPayment(notif.paymentId);
+    markNotifRead(notifId);
+    return;
+  }
+  markNotifRead(notifId);
+}
+
+// syncEmployeeNotifications removed — notifications now come from GET /api/notifications
+
+/* ---------- Employee detail modal ---------- */
+
+let _currentDetailEmp = null;
+
+function openEmpDetailFromMap(userId) {
+  const emp = _pendingEmpMap[userId];
+  if (emp) openEmpDetailWithData(emp);
+  else showToast('error', 'Ошибка', 'Данные сотрудника не найдены.');
+}
+
+function openEmpDetail(notifId) {
+  const notif = NOTIFICATIONS.find(function(n) { return n.id === notifId; });
+  if (!notif) return;
+  if (notif.empData) {
+    openEmpDetailWithData(notif.empData);
+  } else {
+    // No cached data — try lookup by userId in pending map
+    const emp = notif.userId ? _pendingEmpMap[notif.userId] : null;
+    if (emp) openEmpDetailWithData(emp);
+    else showToast('error', 'Данные не найдены', 'Откройте раздел «Сотрудники» для обновления.');
+  }
+}
+
+function openEmpDetailWithData(emp) {
+  _currentDetailEmp = emp;
+
+  const fullName = [emp.lastName, emp.firstName, emp.patronymic].filter(Boolean).join(' ') || emp.name || '—';
+  const initials = getInitials(emp.firstName || '', emp.lastName || '');
+
+  const set = function(id, val) {
+    const el = document.getElementById(id);
+    if (el) { if (el.tagName === 'INPUT' || el.tagName === 'SELECT') el.value = val || ''; else el.textContent = val || '—'; }
+  };
+
+  set('emp-detail-name', fullName);
+  set('emp-detail-position', emp.position || '—');
+  set('emp-detail-iin', emp.iin || '');
+  set('emp-detail-phone', emp.phone || '');
+  set('emp-detail-email', emp.email || '');
+  set('emp-detail-pos', emp.position || '');
+  set('emp-detail-bin', emp.bin || (emp.company && emp.company.bin) || '');
+  set('emp-detail-date', emp.createdAt ? new Date(emp.createdAt).toLocaleDateString('ru-KZ') : 'Нет данных');
+
+  const ava = document.getElementById('emp-detail-ava');
+  if (ava) ava.textContent = initials;
+
+  const roleEl = document.getElementById('emp-detail-role');
+  if (roleEl) roleEl.value = '';
+
+  const permsDiv = document.getElementById('emp-detail-perms');
+  if (permsDiv) permsDiv.style.display = 'none';
+
+  // Wire role select → permissions preview
+  if (roleEl && permsDiv) {
+    roleEl.onchange = function() {
+      const cfg = findRoleConfig(this.value);
+      if (cfg && cfg.perms && cfg.perms.length) {
+        permsDiv.style.display = '';
+        permsDiv.innerHTML = '<strong>Права роли «' + cfg.label + '»:</strong> ' + cfg.perms.join(' · ');
+      } else {
+        permsDiv.style.display = 'none';
+      }
+    };
+  }
+
+  openModal('modal-emp-detail');
+}
+
+function approveEmpFromDetail() {
+  const emp = _currentDetailEmp;
+  if (!emp) return;
+  const roleEl = document.getElementById('emp-detail-role');
+  const role = roleEl ? roleEl.value : '';
+  if (!role) {
+    showToast('warning', 'Выберите роль', 'Укажите роль сотрудника перед подтверждением.');
+    return;
+  }
+  const userId = emp.id || emp.userId || '';
+  const fullName = [emp.lastName, emp.firstName, emp.patronymic].filter(Boolean).join(' ') || emp.name || '—';
+  const notif = NOTIFICATIONS.find(function(n) { return n.userId === userId; });
+  closeModal('modal-emp-detail');
+  _doApproveEmployee(userId, fullName, role, notif ? notif.id : null);
+}
+
+function rejectEmpFromDetail() {
+  const emp = _currentDetailEmp;
+  if (!emp) return;
+  const fullName = [emp.lastName, emp.firstName, emp.patronymic].filter(Boolean).join(' ') || emp.name || '—';
+  if (!window.confirm('Отклонить заявку «' + fullName + '»?')) return;
+  const userId = emp.id || emp.userId || '';
+  const notif = NOTIFICATIONS.find(function(n) { return n.userId === userId; });
+  closeModal('modal-emp-detail');
+  _doRejectEmployee(userId, fullName, notif ? notif.id : null);
+}
+
+async function _doApproveEmployee(userId, name, role, notifId) {
+  try {
+    const resp = await apiFetch('/employees/approve', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: userId, role: role })
+    });
+    const payload = await resp.json().catch(function() { return {}; });
+    if (resp.ok) {
+      if (notifId) {
+        const idx = NOTIFICATIONS.findIndex(function(n) { return n.id === notifId; });
+        if (idx !== -1) NOTIFICATIONS.splice(idx, 1);
+      }
+      loadNotifications();
+      loadEmployees();
+      const cfg = findRoleConfig(role);
+      const roleLabel = cfg ? cfg.label : role;
+      showToast('success', '✅ Кабинет открыт!',
+        'Сотрудник «' + name + '» одобрен как «' + roleLabel + '». ' +
+        'Кабинет активирован — сотрудник может войти по ИИН и паролю.');
+      logAuditEvent({
+        userName: (window._currentUser && (_currentUser.firstName + ' ' + _currentUser.lastName)) || 'Директор',
+        userRole: 'director',
+        action: 'Одобрение сотрудника',
+        object: name + ' (' + roleLabel + ')',
+        result: '✓ Кабинет создан'
+      });
+    } else {
+      showToast('error', 'Ошибка', payload.message || payload.error || 'Не удалось подтвердить заявку.');
+    }
+  } catch (e) {
+    showToast('error', 'Ошибка', 'Сервер недоступен.');
+    console.error('_doApproveEmployee error:', e);
+  }
+}
+
+async function _doRejectEmployee(userId, name, notifId) {
+  try {
+    const resp = await apiFetch('/employees/reject', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: userId })
+    });
+    const payload = await resp.json().catch(function() { return {}; });
+    if (resp.ok) {
+      if (notifId) {
+        const idx = NOTIFICATIONS.findIndex(function(n) { return n.id === notifId; });
+        if (idx !== -1) NOTIFICATIONS.splice(idx, 1);
+      }
+      loadNotifications();
+      loadEmployees();
+      showToast('info', 'Заявка отклонена', 'Заявка «' + name + '» отклонена.');
+    } else {
+      showToast('error', 'Ошибка', payload.message || payload.error || 'Не удалось отклонить заявку.');
+    }
+  } catch (e) {
+    showToast('error', 'Ошибка', 'Сервер недоступен.');
+    console.error('_doRejectEmployee error:', e);
+  }
+}
+
+/* kept for backward compat — delegates to new detail-modal flow */
+async function approveFromNotif(notifId, userId, name) {
+  const roleEl = document.getElementById('notif-role-' + notifId);
+  const role = roleEl ? roleEl.value : '';
+  if (!role) {
+    openEmpDetail(notifId);
+    return;
+  }
+
+  try {
+    const resp = await apiFetch('/employees/approve', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: userId, role: role })
+    });
+    const payload = await resp.json().catch(function() { return {}; });
+    if (resp.ok) {
+      const idx = NOTIFICATIONS.findIndex(function(n) { return n.id === notifId; });
+      if (idx !== -1) NOTIFICATIONS.splice(idx, 1);
+      renderNotifications();
+      updateBellBadge();
+      showToast('success', 'Сотрудник одобрен', name + ' добавлен в систему.');
+    } else {
+      showToast('error', 'Ошибка', payload.message || payload.error || 'Не удалось одобрить сотрудника.');
+    }
+  } catch (e) {
+    showToast('error', 'Ошибка', 'Сервер недоступен.');
+    console.error('approveFromNotif error:', e);
+  }
+}
+
+async function rejectFromNotif(notifId, userId, name) {
+  if (!window.confirm('Отклонить заявку «' + name + '»?')) return;
+
+  try {
+    const resp = await apiFetch('/employees/reject', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId: userId })
+    });
+    const payload = await resp.json().catch(function() { return {}; });
+    if (resp.ok) {
+      const idx = NOTIFICATIONS.findIndex(function(n) { return n.id === notifId; });
+      if (idx !== -1) NOTIFICATIONS.splice(idx, 1);
+      renderNotifications();
+      updateBellBadge();
+      showToast('info', 'Заявка отклонена', 'Заявка «' + name + '» отклонена.');
+    } else {
+      showToast('error', 'Ошибка', payload.message || payload.error || 'Не удалось отклонить заявку.');
+    }
+  } catch (e) {
+    showToast('error', 'Ошибка', 'Сервер недоступен.');
+    console.error('rejectFromNotif error:', e);
+  }
 }
 
 /* ---------- Permissions ---------- */
-function checkPerm(checkbox, label) {
-  var state = checkbox.checked ? 'включено' : 'отключено';
-  showToast('info', 'Право обновлено', '"' + label + '" — ' + state);
+function checkPerm(action, paneId) {
+  const user = getCurrentUser();
+  const cfg = findRoleConfig(user?.role);
+  const canAccess = cfg && cfg.nav && cfg.nav.includes(paneId);
+  if (canAccess) {
+    showPane(paneId);
+    return true;
+  }
+  const paneLabels = {
+    'pane-dashboard': 'Главная панель',
+    'pane-transfer': 'Платежи',
+    'pane-statements': 'Выписки',
+    'pane-analytics': 'Аналитика',
+    'pane-employees': 'Сотрудники',
+    'pane-settings': 'Настройки'
+  };
+  showToast('warning', 'Доступ запрещён', 'У вас нет прав на раздел «' + (paneLabels[paneId] || paneId) + '».');
+  return false;
 }
 
 /* ---------- Init ---------- */
@@ -722,6 +2408,13 @@ document.addEventListener('DOMContentLoaded', function () {
       if (landing) landing.classList.add('active');
     }
   }
+
+  // Инициализация live clock
+  updateDashboardClock();
+  setInterval(updateDashboardClock, 1000 * 60);
+
+  // Инициализация bell badge
+  updateBellBadge();
 
   // Инициализация drag-and-drop зон загрузки документов
   initFileUpload('drop-id-front', 'file-id-front', 'label-id-front');

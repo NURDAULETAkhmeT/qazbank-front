@@ -683,15 +683,15 @@
         <div class="pane-title">Аналитика и отчёты</div>
         <div class="pane-desc">Финансовые показатели, оборот, структура расходов и доходов компании.</div>
         <div class="stats-row mb2">
-          <div class="stat-card sc-green"><div class="stat-ico">📈</div><div class="stat-label">Доходы (март)</div><div class="stat-value">₸87.4M</div><div class="stat-change change-up">▲ +12.3% к февралю</div></div>
-          <div class="stat-card sc-red"><div class="stat-ico">📉</div><div class="stat-label">Расходы (март)</div><div class="stat-value">₸54.2M</div><div class="stat-change change-dn">▲ +5.1% к февралю</div></div>
-          <div class="stat-card sc-navy"><div class="stat-ico">💰</div><div class="stat-label">Чистый поток</div><div class="stat-value">₸33.2M</div><div class="stat-change change-up">▲ +18.7%</div></div>
-          <div class="stat-card sc-gold"><div class="stat-ico">🔄</div><div class="stat-label">Оборот YTD</div><div class="stat-value">₸1.24B</div><div class="stat-change change-up">▲ +8.9% к 2025</div></div>
+          <div class="stat-card sc-green"><div class="stat-ico">📈</div><div class="stat-label" id="analytics-income-label">Доходы</div><div class="stat-value" id="analytics-income-value">₸ 0</div><div class="stat-change change-up" id="analytics-income-change">▲ +0%</div></div>
+          <div class="stat-card sc-red"><div class="stat-ico">📉</div><div class="stat-label" id="analytics-expense-label">Расходы</div><div class="stat-value" id="analytics-expense-value">₸ 0</div><div class="stat-change change-dn" id="analytics-expense-change">▼ 0%</div></div>
+          <div class="stat-card sc-navy"><div class="stat-ico">💰</div><div class="stat-label" id="analytics-net-label">Чистый поток</div><div class="stat-value" id="analytics-net-value">₸ 0</div><div class="stat-change change-up" id="analytics-net-change">▲ +0%</div></div>
+          <div class="stat-card sc-gold"><div class="stat-ico">🔄</div><div class="stat-label" id="analytics-turnover-label">Оборот YTD</div><div class="stat-value" id="analytics-turnover-value">₸ 0</div><div class="stat-change change-up" id="analytics-turnover-change">▲ +0%</div></div>
         </div>
         <div class="g2 mb2">
           <div class="card">
             <div class="card-header"><span class="card-title">Структура расходов</span></div>
-            <div class="card-body">
+            <div class="card-body" id="analytics-expense-structure">
               <div style="display:flex;flex-direction:column;gap:0.75rem;">
                 <div><div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:0.3rem;"><span>💼 Поставщики и подрядчики</span><span style="font-weight:700;">42%</span></div><div style="height:8px;background:var(--light);border-radius:4px;overflow:hidden;"><div style="height:100%;width:42%;background:var(--navy);border-radius:4px;"></div></div></div>
                 <div><div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:0.3rem;"><span>👥 Зарплата</span><span style="font-weight:700;">28%</span></div><div style="height:8px;background:var(--light);border-radius:4px;overflow:hidden;"><div style="height:100%;width:28%;background:var(--gold);border-radius:4px;"></div></div></div>
@@ -703,12 +703,8 @@
           </div>
           <div class="card">
             <div class="card-header"><span class="card-title">Топ-5 контрагентов</span></div>
-            <div class="card-body" style="padding:0;">
-              <div style="padding:0.9rem 1.25rem;border-bottom:1px solid var(--light);display:flex;justify-content:space-between;align-items:center;"><div><div style="font-size:0.85rem;font-weight:700;">ТОО «КазМеталл»</div><div style="font-size:0.72rem;color:var(--muted);">Поставщик</div></div><span style="font-weight:700;color:var(--red);">₸48.2M</span></div>
-              <div style="padding:0.9rem 1.25rem;border-bottom:1px solid var(--light);display:flex;justify-content:space-between;align-items:center;"><div><div style="font-size:0.85rem;font-weight:700;">АО «Ромат»</div><div style="font-size:0.72rem;color:var(--muted);">Покупатель</div></div><span style="font-weight:700;color:var(--green);">+₸87.5M</span></div>
-              <div style="padding:0.9rem 1.25rem;border-bottom:1px solid var(--light);display:flex;justify-content:space-between;align-items:center;"><div><div style="font-size:0.85rem;font-weight:700;">ТОО «Офис-Центр»</div><div style="font-size:0.72rem;color:var(--muted);">Аренда</div></div><span style="font-weight:700;color:var(--red);">₸12.8M</span></div>
-              <div style="padding:0.9rem 1.25rem;border-bottom:1px solid var(--light);display:flex;justify-content:space-between;align-items:center;"><div><div style="font-size:0.85rem;font-weight:700;">BARCLAYS BANK PLC</div><div style="font-size:0.72rem;color:var(--muted);">SWIFT</div></div><span style="font-weight:700;color:var(--red);">$85K</span></div>
-              <div style="padding:0.9rem 1.25rem;display:flex;justify-content:space-between;align-items:center;"><div><div style="font-size:0.85rem;font-weight:700;">КГД МФ РК</div><div style="font-size:0.72rem;color:var(--muted);">Налоги</div></div><span style="font-weight:700;color:var(--red);">₸6.1M</span></div>
+            <div class="card-body" id="analytics-counterparty-list" style="padding:0;">
+              <div style="text-align:center;color:var(--muted);padding:1rem;">Загрузка списка контрагентов...</div>
             </div>
           </div>
         </div>
@@ -718,7 +714,7 @@
             <button class="btn btn-sm btn-primary" onclick="showToast('info','Отчёт формируется','Excel файл будет готов через несколько секунд')">📊 Экспорт Excel</button>
           </div>
           <div class="card-body">
-            <div class="chart-area" style="height:180px;">
+            <div class="chart-area" id="analytics-turnover-chart" style="height:180px;">
               <div class="ch-group"><div class="ch-bar" style="height:52%;background:var(--navy2)"></div><div class="ch-lbl">Янв</div></div>
               <div class="ch-group"><div class="ch-bar" style="height:64%;background:var(--navy2)"></div><div class="ch-lbl">Фев</div></div>
               <div class="ch-group"><div class="ch-bar" style="height:48%;background:var(--navy2)"></div><div class="ch-lbl">Мар</div></div>
@@ -848,8 +844,8 @@
           <div class="tbl-wrap">
             <table class="tbl">
               <thead><tr><th>Дата / Время</th><th>Сотрудник</th><th>Действие</th><th>Объект</th><th>IP-адрес</th><th>Результат</th></tr></thead>
-              <tbody>
-                <tr><td>07.03.2026 14:32</td><td>Алиев С.Н. <span class="badge badge-director" style="font-size:0.55rem;">Директор</span></td><td>Подтверждение платежа</td><td>ПП-001847</td><td class="mono">178.88.42.156</td><td><span class="badge badge-active" style="font-size:0.62rem;">✓ Успех</span></td></tr>
+              <tbody id="audit-table-body">
+                <tr><td colspan="6" style="text-align:center;color:var(--muted);padding:1rem;">Загрузка журнала аудита...</td></tr>
                 <tr><td>07.03.2026 11:20</td><td>Кенжебаева А. <span class="badge badge-findirector" style="font-size:0.55rem;">Фин.дир</span></td><td>Создание платежа</td><td>SWIFT-000124</td><td class="mono">95.56.18.207</td><td><span class="badge badge-pending" style="font-size:0.62rem;">⏳ Ожидает</span></td></tr>
                 <tr><td>07.03.2026 09:41</td><td>Алиев С.Н.</td><td>Вход в систему</td><td>—</td><td class="mono">178.88.42.156</td><td><span class="badge badge-active" style="font-size:0.62rem;">✓ Успех</span></td></tr>
                 <tr><td>06.03.2026 17:22</td><td>Тулегенов Б. <span class="badge badge-manager" style="font-size:0.55rem;">Рук-ль</span></td><td>Изменение роли</td><td>Жакупов Н.Р.</td><td class="mono">77.94.30.12</td><td><span class="badge badge-active" style="font-size:0.62rem;">✓ Успех</span></td></tr>
