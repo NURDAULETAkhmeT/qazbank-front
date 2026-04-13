@@ -1,0 +1,1508 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QazCorpBank — Корпоративный банк для юридических лиц</title>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Nunito:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Nunito:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+<script src="js/app.js" defer></script>
+</head>
+<body>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- ================================================================
+     SCREEN 1: LANDING
+================================================================ -->
+<div id="screen-landing" class="screen active">
+
+  <!-- Top Bar -->
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div class="topbar-left">
+      </div>
+      <div class="topbar-right">
+      
+      </div>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="main-header">
+    <div class="header-inner">
+      <a class="logo" href="#">
+        <div class="logo-mark">Q</div>
+        <div class="logo-text">
+          <div class="ln">QazCorpBank</div>
+          <div class="ls">Корпоративный банк</div>
+        </div>
+      </a>
+      <nav class="main-nav">
+        <a href="#services">Услуги</a>
+        <a href="#tariffs">Тарифы</a>
+        <a href="#roles">Роли</a>
+        <a href="#branches">Отделения</a>
+        <a href="#news">Новости</a>
+        <a href="#contacts">Контакты</a>
+      </nav>
+      <div class="header-actions">
+        <button class="btn btn-outline btn-sm" onclick="startLogin()">🔐 Войти</button>
+        <button class="btn btn-gold btn-sm" onclick="startRegistration()">Регистрация сотрудника</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-grid-bg"></div>
+    <div class="hero-inner">
+      <div>
+        <div class="hero-badge">🏆 Лучший корпоративный банк Казахстана 2024</div>
+        <h1>Финансовое управление<br>для <em>юридических лиц</em><br>на новом уровне</h1>
+        <p class="hero-desc">Полный контроль над корпоративными финансами: расчётные счета, зарплатные проекты, международные платежи, ролевой доступ для каждого сотрудника.</p>
+        <div class="hero-cta">
+          <button class="btn btn-gold btn-lg" onclick="startRegistration()">Зарегистрировать сотрудника</button>
+          <button class="btn btn-outline-white btn-lg" onclick="startLogin()">Войти в кабинет</button>
+        </div>
+        <div class="hero-stats">
+          <div><div class="hs-num">14 800+</div><div class="hs-lbl">Корпоративных<br>клиентов</div></div>
+          <div><div class="hs-num">₸3.2 трлн</div><div class="hs-lbl">Активов под<br>управлением</div></div>
+          <div><div class="hs-num">99.4%</div><div class="hs-lbl">Uptime<br>24/7/365</div></div>
+          <div><div class="hs-num">2 мин</div><div class="hs-lbl">Среднее время<br>транзакции</div></div>
+        </div>
+      </div>
+      <div>
+        <div class="hero-card">
+          <div class="hc-header">
+            <span class="hc-title">Корпоративный счёт</span>
+            <span class="hc-status">✓ Активен</span>
+          </div>
+          <div class="hc-balance-label">Текущий баланс</div>
+          <div class="hc-balance">₸ 248 750 000</div>
+          <div class="hc-iban">KZ89125KZT000001234567</div>
+          <div class="hc-chart">
+            <div class="hc-bar" style="height:35%;background:rgba(201,168,76,0.45)"></div>
+            <div class="hc-bar" style="height:55%;background:rgba(201,168,76,0.5)"></div>
+            <div class="hc-bar" style="height:42%;background:rgba(201,168,76,0.45)"></div>
+            <div class="hc-bar" style="height:75%;background:rgba(201,168,76,0.6)"></div>
+            <div class="hc-bar" style="height:58%;background:rgba(201,168,76,0.55)"></div>
+            <div class="hc-bar" style="height:88%;background:var(--gold)"></div>
+            <div class="hc-bar" style="height:95%;background:var(--gold2)"></div>
+          </div>
+          <div class="hc-actions">
+            <div class="hc-action">💸 Перевод</div>
+            <div class="hc-action">📄 Выписка</div>
+            <div class="hc-action">💰 Платёж</div>
+            <div class="hc-action">📊 Аналитика</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SERVICES -->
+  <section class="section" id="services" style="background:#fff;">
+    <div class="sec-inner">
+      <div class="sec-header">
+        <div class="sec-eyebrow">Для вашего бизнеса</div>
+        <h2 class="sec-title">Корпоративные финансовые услуги</h2>
+        <p class="sec-subtitle">Комплексные решения для компаний любого масштаба — от ТОО до крупных АО и холдингов Казахстана.</p>
+      </div>
+      <div class="services-grid">
+        <div class="svc-card"><div class="svc-icon" style="background:#eaf1fb">🏦</div><h3>РКО и ведение счетов</h3><p>Открытие счетов в тенге и иностранной валюте, онлайн-банкинг 24/7, API-интеграция, мобильное приложение.</p><div class="svc-more">Подробнее →</div></div>
+        <div class="svc-card"><div class="svc-icon" style="background:#e5f4ec">👥</div><h3>Зарплатный проект</h3><p>Перечисление зарплаты сотрудникам, корпоративные карты, интеграция с 1С и SAP, управление лимитами.</p><div class="svc-more">Подробнее →</div></div>
+        <div class="svc-card"><div class="svc-icon" style="background:#fef3eb">📈</div><h3>Бизнес-кредитование</h3><p>Кредиты на развитие, овердрафт до 150% оборота, кредитные линии. Решение за 4 часа. Ставки от 12%.</p><div class="svc-more">Подробнее →</div></div>
+        <div class="svc-card"><div class="svc-icon" style="background:#f0e6ff">🌍</div><h3>Валюта и ВЭД</h3><p>Международные SWIFT/SEPA переводы, паспорта сделок, конвертация по курсам НБ РК, валютный контроль.</p><div class="svc-more">Подробнее →</div></div>
+        <div class="svc-card"><div class="svc-icon" style="background:#fff8e1">🔒</div><h3>Гарантии и аккредитивы</h3><p>Банковские гарантии для госзакупок и тендеров, аккредитивы для безопасных расчётов внутри страны и за рубежом.</p><div class="svc-more">Подробнее →</div></div>
+        <div class="svc-card"><div class="svc-icon" style="background:#fdecea">💎</div><h3>Депозиты и инвестиции</h3><p>Корпоративные депозиты до 14.5% годовых, облигации KASE, паи ПИФ, брокерское обслуживание.</p><div class="svc-more">Подробнее →</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS BAR -->
+  <div class="stats-bar">
+    <div class="stats-bar-inner">
+      <div><div class="sbar-num">14 800+</div><div class="sbar-lbl">Корпоративных клиентов</div></div>
+      <div><div class="sbar-num">47</div><div class="sbar-lbl">Отделений по Казахстану</div></div>
+      <div><div class="sbar-num">₸3.2 трлн</div><div class="sbar-lbl">Активов под управлением</div></div>
+      <div><div class="sbar-num">28 лет</div><div class="sbar-lbl">На финансовом рынке РК</div></div>
+      <div><div class="sbar-num">АА+</div><div class="sbar-lbl">Рейтинг Moody's / Fitch</div></div>
+    </div>
+  </div>
+
+  <!-- ROLES TABLE -->
+  <section class="section" id="roles">
+    <div class="sec-inner">
+      <div class="sec-header">
+        <div class="sec-eyebrow">Система доступа</div>
+        <h2 class="sec-title">Ролевая модель прав сотрудников</h2>
+        <p class="sec-subtitle">Гибкое управление доступом: каждый сотрудник получает только те права, которые необходимы для его работы.</p>
+      </div>
+      <div class="roles-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Роль / Функция</th>
+              <th>Директор<br><small>👑 Учредитель</small></th>
+              <th>Руководитель<br><small>👔 Управление</small></th>
+              <th>Фин. директор<br><small>💼 Финансы</small></th>
+              <th>Бухгалтер<br><small>📊 Учёт</small></th>
+              <th>Фин. менеджер<br><small>📋 Аналитика</small></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Просмотр баланса</td><td><span class="perm-y">✓</span></td><td><span class="perm-y">✓</span></td><td><span class="perm-y">✓</span></td><td><span class="perm-y">✓</span></td><td><span class="perm-y">✓</span></td></tr>
+            <tr><td>Выписки и история</td><td><span class="perm-y">✓</span></td><td><span class="perm-y">✓</span></td><td><span class="perm-y">✓</span></td><td><span class="perm-y">✓</span></td><td><span class="perm-y">✓</span></td></tr>
+            <tr><td>Создание платежей</td><td><span class="perm-y">✓</span></td><td><span class="perm-n">—</span></td><td><span class="perm-y">✓</span></td><td><span class="perm-p">✓ → Директор подтверждает</span></td><td><span class="perm-n">—</span></td></tr>
+            <tr><td>Подтверждение платежей</td><td><span class="perm-y">✓ Учредитель</span></td><td><span class="perm-n">—</span></td><td><span class="perm-y">✓ Крупные</span></td><td><span class="perm-n">—</span></td><td><span class="perm-n">—</span></td></tr>
+            <tr><td>Переводы без лимита</td><td><span class="perm-y">✓</span></td><td><span class="perm-n">—</span></td><td><span class="perm-y">✓ Все суммы</span></td><td><span class="perm-n">—</span></td><td><span class="perm-n">—</span></td></tr>
+            <tr><td>Международные SWIFT</td><td><span class="perm-y">✓</span></td><td><span class="perm-n">—</span></td><td><span class="perm-y">✓</span></td><td><span class="perm-n">—</span></td><td><span class="perm-n">—</span></td></tr>
+            <tr><td>Полная аналитика</td><td><span class="perm-y">✓</span></td><td><span class="perm-y">✓</span></td><td><span class="perm-y">✓ Все данные</span></td><td><span class="perm-n">—</span></td><td><span class="perm-y">✓ Только просмотр</span></td></tr>
+            <tr><td>Управление сотрудниками</td><td><span class="perm-y">✓</span></td><td><span class="perm-y">✓</span></td><td><span class="perm-n">—</span></td><td><span class="perm-n">—</span></td><td><span class="perm-n">—</span></td></tr>
+            <tr><td>Назначение / изменение ролей</td><td><span class="perm-y">✓</span></td><td><span class="perm-y">✓</span></td><td><span class="perm-n">—</span></td><td><span class="perm-n">—</span></td><td><span class="perm-n">—</span></td></tr>
+            <tr><td>Настройки компании</td><td><span class="perm-y">✓</span></td><td><span class="perm-n">—</span></td><td><span class="perm-n">—</span></td><td><span class="perm-n">—</span></td><td><span class="perm-n">—</span></td></tr>
+            <tr><td>Журнал аудита</td><td><span class="perm-y">✓</span></td><td><span class="perm-y">✓</span></td><td><span class="perm-y">✓</span></td><td><span class="perm-n">—</span></td><td><span class="perm-n">—</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- TARIFFS -->
+  <section class="section" id="tariffs" style="background:var(--off);">
+    <div class="sec-inner">
+      <div class="sec-header-row">
+        <div>
+          <div class="sec-eyebrow">Прозрачные условия</div>
+          <h2 class="sec-title">Тарифы для корпоративных клиентов</h2>
+        </div>
+        <button class="btn btn-primary">Сравнить тарифы</button>
+      </div>
+      <div class="tariff-wrap">
+        <table>
+          <thead>
+            <tr><th>Услуга</th><th>Базовый</th><th>Бизнес</th><th>Премиум</th><th>Статус</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Открытие расчётного счёта</td><td>Бесплатно</td><td>Бесплатно</td><td>Бесплатно</td><td><span class="tr-badge tr-green">Акция</span></td></tr>
+            <tr><td>Обслуживание счёта в месяц</td><td>5 000 ₸</td><td>12 000 ₸</td><td>25 000 ₸</td><td></td></tr>
+            <tr><td>Внутренний перевод</td><td>150 ₸</td><td>100 ₸</td><td>Бесплатно</td><td></td></tr>
+            <tr><td>Межбанковский перевод</td><td>350 ₸</td><td>250 ₸</td><td>150 ₸</td><td></td></tr>
+            <tr><td>SWIFT-перевод</td><td>0.15%, мин 5 000 ₸</td><td>0.12%, мин 4 000 ₸</td><td>0.10%, мин 3 000 ₸</td><td><span class="tr-badge tr-gold">Выгодно</span></td></tr>
+            <tr><td>Конвертация валюты</td><td>+0.5% к курсу НБ РК</td><td>+0.3%</td><td>+0.15%</td><td></td></tr>
+            <tr><td>Зарплатный проект (сотрудников)</td><td>до 50</td><td>до 500</td><td>Без лимита</td><td></td></tr>
+            <tr><td>Депозит юр. лица (до 6 мес.)</td><td>до 13% годовых</td><td>до 13.5%</td><td>до 14.5%</td><td><span class="tr-badge tr-green">Топ ставка</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- NEWS -->
+  <section class="section" id="news" style="background:#fff;">
+    <div class="sec-inner">
+      <div class="sec-header-row">
+        <div>
+          <div class="sec-eyebrow">Актуально</div>
+          <h2 class="sec-title">Новости банка и рынка</h2>
+        </div>
+        <button class="btn btn-ghost">Все новости →</button>
+      </div>
+      <div class="news-grid">
+        <div class="news-card"><div class="news-img" style="background:linear-gradient(135deg,#0c2340,#1d5080)">📊</div><div class="news-body"><div class="news-cat">Корпоративный банкинг</div><div class="news-title">QazCorpBank запускает новую платформу управления корпоративными финансами</div><div class="news-date">📅 15 февраля 2026</div></div></div>
+        <div class="news-card"><div class="news-img" style="background:linear-gradient(135deg,#1a4875,#1d7a5a)">💱</div><div class="news-body"><div class="news-cat">Курсы и рынки</div><div class="news-title">НБ РК повысил базовую ставку до 14.75% — что это значит для бизнеса</div><div class="news-date">📅 10 февраля 2026</div></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BRANCHES -->
+  <section class="section" id="branches" style="background:var(--off);">
+    <div class="sec-inner">
+      <div class="sec-header">
+        <div class="sec-eyebrow">Присутствие</div>
+        <h2 class="sec-title">Отделения по Казахстану</h2>
+      </div>
+      <div class="branches-grid">
+        <div class="branch-card"><div class="branch-city">🌆 Алматы (Головной)</div><div class="branch-addr">пр. Аль-Фараби, 17, БЦ «Нурлы Тау», блок 4А</div><div class="branch-hours">Пн–Пт: 09:00–18:00</div></div>
+        <div class="branch-card"><div class="branch-city">🏛️ Астана</div><div class="branch-addr">пр. Мәңгілік Ел, 55/15, ЭКСПО Бизнес Центр</div><div class="branch-hours">Пн–Пт: 09:00–18:00</div></div>
+        <div class="branch-card"><div class="branch-city">🏙️ Шымкент</div><div class="branch-addr">пр. Аль-Фараби, 3, ТЦ «Plaza»</div><div class="branch-hours">Пн–Пт: 09:00–17:30</div></div>
+        <div class="branch-card"><div class="branch-city">⚙️ Караганда</div><div class="branch-addr">ул. Ерубаева, 45, БЦ «Central»</div><div class="branch-hours">Пн–Пт: 09:00–17:30</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACTS -->
+  <section class="section" id="contacts" style="background:#fff;">
+    <div class="sec-inner">
+      <div class="sec-header">
+        <div class="sec-eyebrow">Поддержка</div>
+        <h2 class="sec-title">Свяжитесь с нами</h2>
+      </div>
+      <div class="contacts-row">
+        <div class="contact-card"><div class="contact-icon">📞</div><div class="contact-lbl">Корпоративная линия</div><div class="contact-val">+7 (727) 244-00-00</div><div class="contact-sub">24/7, бесплатно</div></div>
+        <div class="contact-card"><div class="contact-icon">📧</div><div class="contact-lbl">Email поддержка</div><div class="contact-val"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="44272b36340435253e272b363426252a2f6a2f3e">[email&#160;protected]</a></div><div class="contact-sub">Ответ в течение 2 часов</div></div>
+        <div class="contact-card"><div class="contact-icon">💬</div><div class="contact-lbl">WhatsApp / Telegram</div><div class="contact-val">+7 (777) 244-00-01</div><div class="contact-sub">Пн–Пт 08:00–20:00</div></div>
+        <div class="contact-card"><div class="contact-icon">🌐</div><div class="contact-lbl">Онлайн-чат</div><div class="contact-val">qazcorpbank.kz</div><div class="contact-sub">Сейчас онлайн ✓</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer-main">
+      <div class="footer-brand">
+        <div class="logo"><div class="logo-mark">Q</div><div class="logo-text"><div class="ln" style="color:#fff">QazCorpBank</div><div class="ls">Корпоративный банк</div></div></div>
+        <p>Универсальный банк для корпоративных клиентов Казахстана. Лицензия НБ РК №2024-КБ-001. Участник системы обязательного гарантирования депозитов.</p>
+      </div>
+      <div class="footer-col"><h4>Услуги</h4><a href="#">Расчётные счета</a><a href="#">Кредитование</a><a href="#">Зарплатный проект</a><a href="#">Депозиты</a><a href="#">Гарантии</a></div>
+      <div class="footer-col"><h4>Компания</h4><a href="#">О банке</a><a href="#">Руководство</a><a href="#">Рейтинги</a><a href="#">Карьера</a><a href="#">Пресс-центр</a></div>
+      <div class="footer-col"><h4>Клиентам</h4><a href="#">Онлайн-банк</a><a href="#">Отделения</a><a href="#">Тарифы</a><a href="#">Документы</a><a href="#">FAQ</a></div>
+      <div class="footer-col"><h4>Правовое</h4><a href="#">Лицензии</a><a href="#">Раскрытие</a><a href="#">Политика</a><a href="#">Антикоррупция</a><a href="#">Жалобы</a></div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 QazCorpBank АО. Все права защищены.</span>
+      <div class="footer-licenses">
+        <span>Лицензия НБ РК</span>
+        <span>KDIF участник</span>
+        <span>ISO 27001</span>
+        <span>PCI DSS</span>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- ================================================================
+     SCREEN 2: PENDING APPROVAL
+================================================================ -->
+<div id="screen-pending" class="screen">
+  <header class="main-header">
+    <div class="header-inner">
+      <a class="logo" href="#" onclick="goTo('screen-landing')">
+        <div class="logo-mark">Q</div>
+        <div class="logo-text"><div class="ln">QazCorpBank</div><div class="ls">Корпоративный банк</div></div>
+      </a>
+      <button class="nav-toggle" onclick="toggleNav()" aria-label="Открыть меню">☰</button>
+      <div class="header-actions" style="margin-left:auto">
+        <button class="btn btn-ghost btn-sm" onclick="goTo('screen-landing')">← Главная</button>
+      </div>
+    </div>
+  </header>
+  <div class="pending-screen">
+    <div class="ps-icon">⏳</div>
+    <h2>Заявка на рассмотрении</h2>
+    <p>Ваши данные успешно получены. Банк проверяет документы. После подтверждения вы получите SMS с кодом для создания пароля.</p>
+    <div class="pending-steps">
+      <div class="ps-step done"><div class="ps-step-ico">✓</div><div><div class="ps-step-txt">Регистрационные данные</div><div class="ps-step-sub">ИИН, телефон — верифицированы</div></div></div>
+      <div class="ps-step done"><div class="ps-step-ico">✓</div><div><div class="ps-step-txt">Документы</div><div class="ps-step-sub">Удостоверение и приказ — приняты</div></div></div>
+      <div class="ps-step active"><div class="ps-step-ico">⏳</div><div><div class="ps-step-txt">Проверка службой безопасности</div><div class="ps-step-sub">В процессе · до 24 часов</div></div></div>
+      <div class="ps-step wait"><div class="ps-step-ico">4</div><div><div class="ps-step-txt">Подтверждение банком</div><div class="ps-step-sub">Ожидает завершения проверки</div></div></div>
+      <div class="ps-step wait"><div class="ps-step-ico">5</div><div><div class="ps-step-txt">SMS с кодом активации</div><div class="ps-step-sub">Для создания пароля</div></div></div>
+    </div>
+    <button class="btn btn-primary btn-lg" onclick="openModal('modal-set-password')">Уже получили код → Создать пароль</button>
+    <p style="margin-top:1.25rem;font-size:0.8rem;color:var(--muted)">Есть вопросы? Позвоните: <strong>+7 (727) 244-00-00</strong></p>
+  </div>
+</div>
+
+<!-- ================================================================
+     SCREEN 3: DASHBOARD
+================================================================ -->
+<div id="screen-dashboard" class="screen" style="flex-direction:row;">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sb-header">
+      <div class="sb-logo">
+        <div class="logo-mark" style="width:36px;height:36px;font-size:1.1rem;">Q</div>
+        <div class="logo-text"><div class="ln" style="color:#fff;font-size:0.95rem;">QazCorpBank</div></div>
+      </div>
+      <div class="sb-org">Организация</div>
+      <div class="sb-company" id="sb-company-name">ТОО «КазПромХолдинг»</div>
+    </div>
+
+    <div class="sb-user" onclick="showPane('pane-profile')">
+      <div class="sb-avatar" id="sb-avatar" style="background:linear-gradient(135deg,#c9a84c,#e2c06a);color:#0c2340;">А</div>
+      <div>
+        <div class="sb-uname" id="sb-uname">Загрузка...</div>
+        <div class="sb-urole" id="sb-urole">Роль</div>
+      </div>
+    </div>
+
+    <nav class="sb-nav" id="sb-nav">
+      <!-- Populated by JS based on role -->
+    </nav>
+
+    <div class="sb-footer">
+      <div class="sb-logout" onclick="doLogout()">
+        <span>🚪</span><span>Выйти из системы</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="dash-main">
+    <div class="dash-topbar">
+      <div class="dash-breadcrumb">QazCorpBank / <span class="crumb-active" id="crumb-active">Главная</span></div>
+      <div class="dash-topbar-right">
+        <div class="dash-time" id="dash-clock">09:41</div>
+        <div class="topbar-btn" onclick="showPane('pane-notifications')">🔔<div class="tb-dot"></div></div>
+        <div class="topbar-btn" onclick="showPane('pane-settings')">⚙️</div>
+        <button class="btn btn-sm btn-outline" onclick="doLogout()">Выйти</button>
+      </div>
+    </div>
+
+    <div class="dash-content">
+
+      <!-- PANE: DASHBOARD HOME -->
+      <div class="dash-pane active" id="pane-dashboard">
+        <div class="pane-title">Главная панель</div>
+        <div class="pane-desc" id="dash-welcome-msg">Добро пожаловать!</div>
+
+        <div class="stats-row" id="stats-row"><!-- JS --></div>
+
+        <div class="qa-grid" id="qa-grid"><!-- JS --></div>
+
+        <div class="g75 mb2">
+          <div>
+            <div class="acc-card mb2">
+              <div class="acc-top">
+                <div><div class="acc-label">Основной счёт</div><div style="font-size:0.72rem;color:rgba(255,255,255,0.5)">KZT</div></div>
+                <span class="acc-type">РАСЧЁТНЫЙ</span>
+              </div>
+              <div class="acc-iban">KZ89 125K ZT00 0001 2345 67</div>
+              <div class="acc-balance">₸ 248 750 000.00</div>
+              <div class="acc-currency">Казахстанский тенге · Доступно: ₸ 240 100 000</div>
+              <div class="acc-actions">
+                <div class="acc-action" onclick="checkPerm('transfer','pane-transfer')">💸 Перевести</div>
+                <div class="acc-action" onclick="checkPerm('statements','pane-statements')">📄 Выписка</div>
+                <div class="acc-action">🔢 Реквизиты</div>
+                <div class="acc-action" onclick="checkPerm('analytics','pane-analytics')">📊 Аналитика</div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header">
+                <span class="card-title">Динамика оборотов</span>
+                <div style="display:flex;gap:0.4rem;">
+                  <button class="btn btn-sm btn-ghost" onclick="this.style.background='var(--navy)';this.style.color='#fff'">Мес</button>
+                  <button class="btn btn-sm btn-ghost">Квр</button>
+                  <button class="btn btn-sm btn-ghost">Год</button>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="chart-area">
+                  <div class="ch-group"><div class="ch-bar" style="height:45%;background:var(--navy2)"></div><div class="ch-lbl">Янв</div></div>
+                  <div class="ch-group"><div class="ch-bar" style="height:62%;background:var(--navy2)"></div><div class="ch-lbl">Фев</div></div>
+                  <div class="ch-group"><div class="ch-bar" style="height:38%;background:var(--navy2)"></div><div class="ch-lbl">Мар</div></div>
+                  <div class="ch-group"><div class="ch-bar" style="height:75%;background:var(--navy2)"></div><div class="ch-lbl">Апр</div></div>
+                  <div class="ch-group"><div class="ch-bar" style="height:55%;background:var(--navy2)"></div><div class="ch-lbl">Май</div></div>
+                  <div class="ch-group"><div class="ch-bar" style="height:88%;background:var(--navy2)"></div><div class="ch-lbl">Июн</div></div>
+                  <div class="ch-group"><div class="ch-bar" style="height:70%;background:var(--gold)"></div><div class="ch-lbl">Июл</div></div>
+                  <div class="ch-group"><div class="ch-bar" style="height:95%;background:var(--gold)"></div><div class="ch-lbl">Авг</div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="card mb2">
+              <div class="card-header"><span class="card-title">Валютные счета</span></div>
+              <div class="card-body" style="padding:0;">
+                <div style="display:flex;align-items:center;gap:1rem;padding:1rem 1.5rem;border-bottom:1px solid var(--light);">
+                  <span style="font-size:1.4rem;">🇺🇸</span>
+                  <div style="flex:1"><div style="font-size:0.83rem;font-weight:700;color:var(--navy)">USD счёт</div><div style="font-size:0.72rem;color:var(--muted)">KZ89125USD000001</div></div>
+                  <div style="text-align:right"><div style="font-weight:700;color:var(--navy)">$142 800</div><div style="font-size:0.72rem;color:var(--green)">≈ ₸63.8 млн</div></div>
+                </div>
+                <div style="display:flex;align-items:center;gap:1rem;padding:1rem 1.5rem;border-bottom:1px solid var(--light);">
+                  <span style="font-size:1.4rem;">🇪🇺</span>
+                  <div style="flex:1"><div style="font-size:0.83rem;font-weight:700;color:var(--navy)">EUR счёт</div><div style="font-size:0.72rem;color:var(--muted)">KZ89125EUR000001</div></div>
+                  <div style="text-align:right"><div style="font-weight:700;color:var(--navy)">€58 200</div><div style="font-size:0.72rem;color:var(--green)">≈ ₸28.5 млн</div></div>
+                </div>
+                <div style="display:flex;align-items:center;gap:1rem;padding:1rem 1.5rem;">
+                  <span style="font-size:1.4rem;">🇨🇳</span>
+                  <div style="flex:1"><div style="font-size:0.83rem;font-weight:700;color:var(--navy)">CNY счёт</div><div style="font-size:0.72rem;color:var(--muted)">KZ89125CNY000001</div></div>
+                  <div style="text-align:right"><div style="font-weight:700;color:var(--navy)">¥320 000</div><div style="font-size:0.72rem;color:var(--green)">≈ ₸19.6 млн</div></div>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header"><span class="card-title">Ожидают подтверждения</span><span class="badge badge-pending">3</span></div>
+              <div class="card-body" style="padding:0;">
+                <div style="padding:0.9rem 1.5rem;border-bottom:1px solid var(--light);display:flex;align-items:center;gap:0.75rem;">
+                  <span style="font-size:1rem;">💸</span>
+                  <div style="flex:1"><div style="font-size:0.83rem;font-weight:700;">Платёж №2024-1847</div><div style="font-size:0.72rem;color:var(--muted);">ТОО «АлматыСтрой» · ₸4 200 000</div></div>
+                  <span class="badge badge-pending">Ожидает</span>
+                </div>
+                <div style="padding:0.9rem 1.5rem;border-bottom:1px solid var(--light);display:flex;align-items:center;gap:0.75rem;">
+                  <span style="font-size:1rem;">🌍</span>
+                  <div style="flex:1"><div style="font-size:0.83rem;font-weight:700;">SWIFT USD</div><div style="font-size:0.72rem;color:var(--muted);">DEUTSCHE BANK AG · $45 000</div></div>
+                  <span class="badge badge-pending">Ожидает</span>
+                </div>
+                <div style="padding:0.9rem 1.5rem;display:flex;align-items:center;gap:0.75rem;">
+                  <span style="font-size:1rem;">👥</span>
+                  <div style="flex:1"><div style="font-size:0.83rem;font-weight:700;">Зарплата · Июль</div><div style="font-size:0.72rem;color:var(--muted);">142 сотрудника · ₸38 500 000</div></div>
+                  <span class="badge badge-pending">Ожидает</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><span class="card-title">Последние транзакции</span><button class="btn btn-sm btn-ghost" onclick="showPane('pane-statements')">Все транзакции →</button></div>
+          <div class="tbl-wrap">
+            <table class="tbl">
+              <thead><tr><th>Дата / Время</th><th>Описание</th><th>Получатель / Отправитель</th><th>Статус</th><th>Сумма</th></tr></thead>
+              <tbody>
+                <tr><td>07.03.2026<br><span style="color:var(--muted);font-size:0.75rem">14:32</span></td><td>Оплата поставщику</td><td>ТОО «КазМеталл»</td><td><span class="badge badge-active">Выполнен</span></td><td class="amt-neg">− ₸12 450 000</td></tr>
+                <tr><td>07.03.2026<br><span style="color:var(--muted);font-size:0.75rem">11:15</span></td><td>Поступление от клиента</td><td>АО «Ромат»</td><td><span class="badge badge-active">Выполнен</span></td><td class="amt-pos">+ ₸28 000 000</td></tr>
+                <tr><td>06.03.2026<br><span style="color:var(--muted);font-size:0.75rem">17:45</span></td><td>Аренда офиса</td><td>ТОО «Офис-Центр»</td><td><span class="badge badge-active">Выполнен</span></td><td class="amt-neg">− ₸3 200 000</td></tr>
+                <tr><td>06.03.2026<br><span style="color:var(--muted);font-size:0.75rem">09:00</span></td><td>SWIFT-перевод</td><td>BARCLAYS BANK PLC</td><td><span class="badge badge-pending">В обработке</span></td><td class="amt-neg">− $85 000</td></tr>
+                <tr><td>05.03.2026<br><span style="color:var(--muted);font-size:0.75rem">16:20</span></td><td>Зарплата март</td><td>142 сотрудника</td><td><span class="badge badge-active">Выполнен</span></td><td class="amt-neg">− ₸38 500 000</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANE: TRANSFER -->
+      <div class="dash-pane" id="pane-transfer">
+        <div class="pane-title">Переводы и платежи</div>
+        <div class="pane-desc">Отправка средств внутри банка, межбанковские и международные переводы.</div>
+        <div class="g65">
+          <div>
+            <div class="card">
+              <div class="card-header"><span class="card-title">Новый платёж</span></div>
+              <div class="card-body">
+                <div class="transfer-tabs">
+                  <div class="tr-tab active" onclick="setTab(this,'tr-tab')">🏦 Внутри банка</div>
+                  <div class="tr-tab" onclick="setTab(this,'tr-tab')">🏛️ Межбанковский</div>
+                  <div class="tr-tab" onclick="setTab(this,'tr-tab')">🌍 SWIFT</div>
+                  <div class="tr-tab" onclick="setTab(this,'tr-tab')">👥 Зарплата</div>
+                </div>
+                <div class="form-group"><label>Счёт списания <span class="req">*</span></label><select class="input"><option>KZ89125KZT000001234567 · ₸248 750 000 (KZT)</option><option>KZ89125USD000001 · $142 800 (USD)</option></select></div>
+                <div class="form-group"><label>IBAN получателя <span class="req">*</span></label><div class="input-icon-wrap"><span class="i-icon">🔢</span><input class="input" placeholder="KZxx xxxx xxxx xxxx xxxx xx"></div></div>
+                <div class="form-row">
+                  <div class="form-group"><label>БИН/ИИН получателя</label><input class="input" placeholder="123456789012"></div>
+                  <div class="form-group"><label>Банк получателя</label><input class="input" placeholder="БИК банка" value="KCJBKZKX"></div>
+                </div>
+                <div class="form-group"><label>Наименование получателя <span class="req">*</span></label><input class="input" placeholder="ТОО «Название компании»"></div>
+                <div class="form-row">
+                  <div class="form-group"><label>Сумма <span class="req">*</span></label><div class="amount-wrap"><input class="input" type="number" placeholder="0.00"><span class="amount-curr">KZT</span></div></div>
+                  <div class="form-group"><label>Валюта</label><select class="input"><option>KZT — Тенге</option><option>USD — Доллар</option><option>EUR — Евро</option></select></div>
+                </div>
+                <div class="form-group"><label>Назначение платежа <span class="req">*</span></label><input class="input" placeholder="Оплата по договору № ... от ..."></div>
+                <div class="form-group"><label>КНП (код назначения платежа)</label><select class="input"><option>119 — Прочие платежи</option><option>111 — Оплата за товары</option><option>113 — Оплата услуг</option><option>171 — Зарплата</option></select></div>
+                <div class="form-group"><label>Дата платежа</label><input class="input" type="date" id="paydate"></div>
+                <div class="alert alert-info" id="transfer-alert-info">🔐 Платежи свыше ₸10 000 000 требуют подтверждения Финансового директора</div>
+                <div class="alert alert-warning" id="transfer-alert-accountant" style="display:none;">⚠️ Вы создаёте платёж как Бухгалтер. Платёж будет отправлен на <strong>обязательное подтверждение Директора (учредителя)</strong> перед исполнением.</div>
+                <div style="display:flex;gap:0.75rem;">
+                  <button class="btn btn-ghost btn-full">💾 Сохранить черновик</button>
+                  <button class="btn btn-primary btn-full" id="transfer-submit-btn" onclick="submitPayment()">💸 Отправить платёж</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="card mb2">
+              <div class="card-header"><span class="card-title">Шаблоны платежей</span></div>
+              <div class="card-body" style="padding:0;">
+                <div style="padding:0.9rem 1.25rem;border-bottom:1px solid var(--light);cursor:pointer;transition:background 0.2s;" onmouseover="this.style.background='var(--off)'" onmouseout="this.style.background=''">
+                  <div style="font-size:0.85rem;font-weight:700;">ТОО «КазМеталл»</div>
+                  <div style="font-size:0.75rem;color:var(--muted);">Оплата металлопроката · KZT</div>
+                </div>
+                <div style="padding:0.9rem 1.25rem;border-bottom:1px solid var(--light);cursor:pointer;transition:background 0.2s;" onmouseover="this.style.background='var(--off)'" onmouseout="this.style.background=''">
+                  <div style="font-size:0.85rem;font-weight:700;">Аренда офиса</div>
+                  <div style="font-size:0.75rem;color:var(--muted);">Ежемесячный · ₸3 200 000</div>
+                </div>
+                <div style="padding:0.9rem 1.25rem;cursor:pointer;transition:background 0.2s;" onmouseover="this.style.background='var(--off)'" onmouseout="this.style.background=''">
+                  <div style="font-size:0.85rem;font-weight:700;">Налоги КГД</div>
+                  <div style="font-size:0.75rem;color:var(--muted);">КПН / НДС / ИПН</div>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header"><span class="card-title">История платежей</span></div>
+              <div class="tbl-wrap">
+                <table class="tbl">
+                  <thead><tr><th>Получатель</th><th>Сумма</th><th>Статус</th></tr></thead>
+                  <tbody>
+                    <tr><td>ТОО «КазМеталл»</td><td class="amt-neg">−₸12.4M</td><td><span class="badge badge-active" style="font-size:0.62rem;">✓</span></td></tr>
+                    <tr><td>SWIFT: BARCLAYS</td><td class="amt-neg">−$85K</td><td><span class="badge badge-pending" style="font-size:0.62rem;">⏳</span></td></tr>
+                    <tr><td>Аренда офиса</td><td class="amt-neg">−₸3.2M</td><td><span class="badge badge-active" style="font-size:0.62rem;">✓</span></td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANE: STATEMENTS -->
+      <div class="dash-pane" id="pane-statements">
+        <div class="pane-title">Выписки и история</div>
+        <div class="pane-desc">Полная история операций по всем счетам компании.</div>
+        <div class="card mb2">
+          <div class="card-header">
+            <span class="card-title">Фильтры</span>
+            <button class="btn btn-primary btn-sm" onclick="showToast('info','Формируется выписка','PDF будет готов через несколько секунд')">📥 Скачать PDF</button>
+          </div>
+          <div class="card-body">
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;align-items:end;">
+              <div class="form-group" style="margin-bottom:0;"><label>Счёт</label><select class="input"><option>Все счета</option><option>KZT счёт</option><option>USD счёт</option></select></div>
+              <div class="form-group" style="margin-bottom:0;"><label>Период с</label><input class="input" type="date" value="2026-02-01"></div>
+              <div class="form-group" style="margin-bottom:0;"><label>Период по</label><input class="input" type="date" value="2026-03-07"></div>
+              <button class="btn btn-primary">🔍 Применить</button>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="tbl-wrap">
+            <table class="tbl">
+              <thead><tr><th>Дата</th><th>Документ №</th><th>Описание / Назначение</th><th>Контрагент</th><th>Дебет</th><th>Кредит</th><th>Остаток</th><th>Статус</th></tr></thead>
+              <tbody>
+                <tr><td>07.03.2026</td><td class="mono">ПП-001847</td><td>Оплата металлопроката</td><td>ТОО «КазМеталл»</td><td class="amt-neg">₸12 450 000</td><td>—</td><td>₸248 750 000</td><td><span class="badge badge-active" style="font-size:0.62rem;">✓</span></td></tr>
+                <tr><td>07.03.2026</td><td class="mono">ПП-001846</td><td>Поступление от клиента</td><td>АО «Ромат»</td><td>—</td><td class="amt-pos">₸28 000 000</td><td>₸261 200 000</td><td><span class="badge badge-active" style="font-size:0.62rem;">✓</span></td></tr>
+                <tr><td>06.03.2026</td><td class="mono">ПП-001845</td><td>Аренда офиса март</td><td>ТОО «Офис-Центр»</td><td class="amt-neg">₸3 200 000</td><td>—</td><td>₸233 200 000</td><td><span class="badge badge-active" style="font-size:0.62rem;">✓</span></td></tr>
+                <tr><td>06.03.2026</td><td class="mono">SW-000124</td><td>SWIFT платёж USD</td><td>BARCLAYS BANK PLC</td><td class="amt-neg">$85 000</td><td>—</td><td>$57 800</td><td><span class="badge badge-pending" style="font-size:0.62rem;">⏳</span></td></tr>
+                <tr><td>05.03.2026</td><td class="mono">ЗП-001200</td><td>Зарплата сотрудников</td><td>142 сотрудника</td><td class="amt-neg">₸38 500 000</td><td>—</td><td>₸236 400 000</td><td><span class="badge badge-active" style="font-size:0.62rem;">✓</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANE: EMPLOYEES -->
+      <div class="dash-pane" id="pane-employees">
+        <div class="pane-title">Управление сотрудниками</div>
+        <div class="pane-desc">Список сотрудников компании, их роли и статусы доступа.</div>
+        <div style="display:flex;gap:1rem;margin-bottom:1.5rem;flex-wrap:wrap;">
+          <div class="search-bar" style="flex:1;min-width:200px;"><input class="input" placeholder="Поиск по имени, ИИН, должности..."></div>
+          <select class="input" style="width:180px;"><option>Все роли</option><option>Директор</option><option>Руководитель</option><option>Фин. директор</option><option>Бухгалтер</option><option>Фин. менеджер</option></select>
+          <select class="input" style="width:160px;"><option>Все статусы</option><option>Активен</option><option>Заблокирован</option><option>На рассмотрении</option></select>
+          <button class="btn btn-primary" onclick="openModal('modal-add-employee')">+ Добавить</button>
+        </div>
+        <div class="emp-grid">
+          <div class="emp-card">
+            <div class="emp-card-header">
+              <div class="emp-ava" style="background:linear-gradient(135deg,#c9a84c,#e2c06a);color:#0c2340;">АС</div>
+              <div><div class="emp-name">Алиев Серик Нурланович</div><div class="emp-pos">Генеральный директор</div><span class="badge badge-director">Директор</span></div>
+            </div>
+            <div class="emp-info">
+              <div class="emp-info-item"><div class="emp-info-lbl">ИИН</div><div class="emp-info-val">850312300145</div></div>
+              <div class="emp-info-item"><div class="emp-info-lbl">Телефон</div><div class="emp-info-val">+7 701 234 5678</div></div>
+              <div class="emp-info-item"><div class="emp-info-lbl">Статус</div><div class="emp-info-val" style="color:var(--green)">● Активен</div></div>
+              <div class="emp-info-item"><div class="emp-info-lbl">Последний вход</div><div class="emp-info-val">07.03.2026</div></div>
+            </div>
+            <div class="emp-actions">
+              <button class="btn btn-sm btn-ghost" onclick="openModal('modal-employee-perms')">Права</button>
+              <button class="btn btn-sm btn-ghost">Изменить</button>
+              <button class="btn btn-sm btn-danger">Блок.</button>
+            </div>
+          </div>
+          <div class="emp-card">
+            <div class="emp-card-header">
+              <div class="emp-ava" style="background:#eaf1fb;color:var(--navy2);">КА</div>
+              <div><div class="emp-name">Кенжебаева Айгерим</div><div class="emp-pos">Финансовый директор</div><span class="badge badge-findirector">Фин. директор</span></div>
+            </div>
+            <div class="emp-info">
+              <div class="emp-info-item"><div class="emp-info-lbl">ИИН</div><div class="emp-info-val">900524400287</div></div>
+              <div class="emp-info-item"><div class="emp-info-lbl">Телефон</div><div class="emp-info-val">+7 702 345 6789</div></div>
+              <div class="emp-info-item"><div class="emp-info-lbl">Статус</div><div class="emp-info-val" style="color:var(--green)">● Активен</div></div>
+              <div class="emp-info-item"><div class="emp-info-lbl">Последний вход</div><div class="emp-info-val">07.03.2026</div></div>
+            </div>
+            <div class="emp-actions">
+              <button class="btn btn-sm btn-ghost" onclick="openModal('modal-employee-perms')">Права</button>
+              <button class="btn btn-sm btn-ghost">Изменить</button>
+              <button class="btn btn-sm btn-danger">Блок.</button>
+            </div>
+          </div>
+          <div class="emp-card">
+            <div class="emp-card-header">
+              <div class="emp-ava" style="background:var(--green-bg);color:var(--green);">МД</div>
+              <div><div class="emp-name">Мухамедова Динара</div><div class="emp-pos">Главный бухгалтер</div><span class="badge badge-accountant">Бухгалтер</span></div>
+            </div>
+            <div class="emp-info">
+              <div class="emp-info-item"><div class="emp-info-lbl">ИИН</div><div class="emp-info-val">880715200364</div></div>
+              <div class="emp-info-item"><div class="emp-info-lbl">Телефон</div><div class="emp-info-val">+7 703 456 7890</div></div>
+              <div class="emp-info-item"><div class="emp-info-lbl">Статус</div><div class="emp-info-val" style="color:var(--green)">● Активен</div></div>
+              <div class="emp-info-item"><div class="emp-info-lbl">Последний вход</div><div class="emp-info-val">06.03.2026</div></div>
+            </div>
+            <div class="emp-actions">
+              <button class="btn btn-sm btn-ghost" onclick="openModal('modal-employee-perms')">Права</button>
+              <button class="btn btn-sm btn-ghost">Изменить</button>
+              <button class="btn btn-sm btn-danger">Блок.</button>
+            </div>
+          </div>
+          <div class="emp-card">
+            <div class="emp-card-header">
+              <div class="emp-ava" style="background:var(--blue-bg);color:var(--navy2);">ТБ</div>
+              <div><div class="emp-name">Тулегенов Бауыржан</div><div class="emp-pos">Руководитель отдела</div><span class="badge badge-manager">Руководитель</span></div>
+            </div>
+            <div class="emp-info">
+              <div class="emp-info-item"><div class="emp-info-lbl">ИИН</div><div class="emp-info-val">950630300521</div></div>
+              <div class="emp-info-item"><div class="emp-info-lbl">Телефон</div><div class="emp-info-val">+7 705 567 8901</div></div>
+              <div class="emp-info-item"><div class="emp-info-lbl">Статус</div><div class="emp-info-val" style="color:var(--green)">● Активен</div></div>
+              <div class="emp-info-item"><div class="emp-info-lbl">Последний вход</div><div class="emp-info-val">05.03.2026</div></div>
+            </div>
+            <div class="emp-actions">
+              <button class="btn btn-sm btn-ghost" onclick="openModal('modal-employee-perms')">Права</button>
+              <button class="btn btn-sm btn-ghost">Изменить</button>
+              <button class="btn btn-sm btn-danger">Блок.</button>
+            </div>
+          </div>
+          <div class="emp-card">
+            <div class="emp-card-header">
+              <div class="emp-ava" style="background:var(--orange-bg);color:var(--orange);">НЖ</div>
+              <div><div class="emp-name">Нурлан Жакупов</div><div class="emp-pos">Финансовый менеджер</div><span class="badge badge-finmanager">Фин. менеджер</span></div>
+            </div>
+            <div class="emp-info">
+              <div class="emp-info-item"><div class="emp-info-lbl">ИИН</div><div class="emp-info-val">001105600742</div></div>
+              <div class="emp-info-item"><div class="emp-info-lbl">Телефон</div><div class="emp-info-val">+7 707 678 9012</div></div>
+              <div class="emp-info-item"><div class="emp-info-lbl">Статус</div><div class="emp-info-val" style="color:var(--green)">● Активен</div></div>
+              <div class="emp-info-item"><div class="emp-info-lbl">Последний вход</div><div class="emp-info-val">07.03.2026</div></div>
+            </div>
+            <div class="emp-actions">
+              <button class="btn btn-sm btn-ghost" onclick="openModal('modal-employee-perms')">Права</button>
+              <button class="btn btn-sm btn-ghost">Изменить</button>
+              <button class="btn btn-sm btn-success">Активен</button>
+            </div>
+          </div>
+          <div class="emp-card" style="border:2px dashed var(--light);background:transparent;display:flex;align-items:center;justify-content:center;min-height:200px;">
+            <div style="text-align:center;cursor:pointer;" onclick="openModal('modal-add-employee')">
+              <div style="font-size:2.5rem;margin-bottom:0.75rem;opacity:0.4;">+</div>
+              <div style="font-size:0.85rem;font-weight:700;color:var(--muted);">Добавить сотрудника</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANE: ANALYTICS -->
+      <div class="dash-pane" id="pane-analytics">
+        <div class="pane-title">Аналитика и отчёты</div>
+        <div class="pane-desc">Финансовые показатели, оборот, структура расходов и доходов компании.</div>
+        <div class="stats-row mb2">
+          <div class="stat-card sc-green"><div class="stat-ico">📈</div><div class="stat-label" id="analytics-income-label">Доходы</div><div class="stat-value" id="analytics-income-value">₸ 0</div><div class="stat-change change-up" id="analytics-income-change">▲ +0%</div></div>
+          <div class="stat-card sc-red"><div class="stat-ico">📉</div><div class="stat-label" id="analytics-expense-label">Расходы</div><div class="stat-value" id="analytics-expense-value">₸ 0</div><div class="stat-change change-dn" id="analytics-expense-change">▼ 0%</div></div>
+          <div class="stat-card sc-navy"><div class="stat-ico">💰</div><div class="stat-label" id="analytics-net-label">Чистый поток</div><div class="stat-value" id="analytics-net-value">₸ 0</div><div class="stat-change change-up" id="analytics-net-change">▲ +0%</div></div>
+          <div class="stat-card sc-gold"><div class="stat-ico">🔄</div><div class="stat-label" id="analytics-turnover-label">Оборот YTD</div><div class="stat-value" id="analytics-turnover-value">₸ 0</div><div class="stat-change change-up" id="analytics-turnover-change">▲ +0%</div></div>
+        </div>
+        <div class="g2 mb2">
+          <div class="card">
+            <div class="card-header"><span class="card-title">Структура расходов</span></div>
+            <div class="card-body" id="analytics-expense-structure">
+              <div style="display:flex;flex-direction:column;gap:0.75rem;">
+                <div><div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:0.3rem;"><span>💼 Поставщики и подрядчики</span><span style="font-weight:700;">42%</span></div><div style="height:8px;background:var(--light);border-radius:4px;overflow:hidden;"><div style="height:100%;width:42%;background:var(--navy);border-radius:4px;"></div></div></div>
+                <div><div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:0.3rem;"><span>👥 Зарплата</span><span style="font-weight:700;">28%</span></div><div style="height:8px;background:var(--light);border-radius:4px;overflow:hidden;"><div style="height:100%;width:28%;background:var(--gold);border-radius:4px;"></div></div></div>
+                <div><div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:0.3rem;"><span>🏢 Аренда и коммунальные</span><span style="font-weight:700;">12%</span></div><div style="height:8px;background:var(--light);border-radius:4px;overflow:hidden;"><div style="height:100%;width:12%;background:var(--green);border-radius:4px;"></div></div></div>
+                <div><div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:0.3rem;"><span>🧾 Налоги и сборы</span><span style="font-weight:700;">11%</span></div><div style="height:8px;background:var(--light);border-radius:4px;overflow:hidden;"><div style="height:100%;width:11%;background:var(--red);border-radius:4px;"></div></div></div>
+                <div><div style="display:flex;justify-content:space-between;font-size:0.82rem;margin-bottom:0.3rem;"><span>📦 Прочие</span><span style="font-weight:700;">7%</span></div><div style="height:8px;background:var(--light);border-radius:4px;overflow:hidden;"><div style="height:100%;width:7%;background:var(--muted);border-radius:4px;"></div></div></div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-header"><span class="card-title">Топ-5 контрагентов</span></div>
+            <div class="card-body" id="analytics-counterparty-list" style="padding:0;">
+              <div style="text-align:center;color:var(--muted);padding:1rem;">Загрузка списка контрагентов...</div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Ежемесячный оборот</span>
+            <button class="btn btn-sm btn-primary" onclick="showToast('info','Отчёт формируется','Excel файл будет готов через несколько секунд')">📊 Экспорт Excel</button>
+          </div>
+          <div class="card-body">
+            <div class="chart-area" id="analytics-turnover-chart" style="height:180px;">
+              <div class="ch-group"><div class="ch-bar" style="height:52%;background:var(--navy2)"></div><div class="ch-lbl">Янв</div></div>
+              <div class="ch-group"><div class="ch-bar" style="height:64%;background:var(--navy2)"></div><div class="ch-lbl">Фев</div></div>
+              <div class="ch-group"><div class="ch-bar" style="height:48%;background:var(--navy2)"></div><div class="ch-lbl">Мар</div></div>
+              <div class="ch-group"><div class="ch-bar" style="height:78%;background:var(--navy2)"></div><div class="ch-lbl">Апр</div></div>
+              <div class="ch-group"><div class="ch-bar" style="height:60%;background:var(--navy2)"></div><div class="ch-lbl">Май</div></div>
+              <div class="ch-group"><div class="ch-bar" style="height:85%;background:var(--navy2)"></div><div class="ch-lbl">Июн</div></div>
+              <div class="ch-group"><div class="ch-bar" style="height:72%;background:var(--gold)"></div><div class="ch-lbl">Июл</div></div>
+              <div class="ch-group"><div class="ch-bar" style="height:90%;background:var(--gold)"></div><div class="ch-lbl">Авг</div></div>
+              <div class="ch-group"><div class="ch-bar" style="height:68%;background:var(--gold)"></div><div class="ch-lbl">Сен</div></div>
+              <div class="ch-group"><div class="ch-bar" style="height:82%;background:var(--gold)"></div><div class="ch-lbl">Окт</div></div>
+              <div class="ch-group"><div class="ch-bar" style="height:75%;background:var(--gold2)"></div><div class="ch-lbl">Ноя</div></div>
+              <div class="ch-group"><div class="ch-bar" style="height:95%;background:var(--gold2)"></div><div class="ch-lbl">Дек</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANE: NOTIFICATIONS -->
+      <div class="dash-pane" id="pane-notifications">
+        <div class="pane-title">Уведомления</div>
+        <div class="pane-desc">Системные сообщения, платёжные уведомления и оповещения безопасности.</div>
+        <div style="display:flex;gap:0.75rem;margin-bottom:1.5rem;">
+          <button class="btn btn-primary btn-sm">Все</button>
+          <button class="btn btn-ghost btn-sm">Платежи</button>
+          <button class="btn btn-ghost btn-sm">Безопасность</button>
+          <button class="btn btn-ghost btn-sm">Система</button>
+        </div>
+        <div class="notif-list">
+          <div class="notif-item unread"><div class="notif-ico" style="background:var(--orange-bg);">⚠️</div><div class="notif-body"><div class="notif-title">Требуется подтверждение платежа</div><div class="notif-text">Платёж №2024-1847 на сумму ₸4 200 000 ожидает вашего подтверждения. Получатель: ТОО «АлматыСтрой».</div><div class="notif-time">Сегодня, 14:35</div></div><button class="btn btn-sm btn-primary" style="flex-shrink:0;">Подтвердить</button></div>
+          <div class="notif-item unread"><div class="notif-ico" style="background:var(--blue-bg);">🔐</div><div class="notif-body"><div class="notif-title">Новый вход в систему</div><div class="notif-text">Выполнен вход с устройства: Chrome / Windows. IP: 178.88.42.156. Алматы, Казахстан.</div><div class="notif-time">Сегодня, 09:41</div></div></div>
+          <div class="notif-item unread"><div class="notif-ico" style="background:var(--green-bg);">✅</div><div class="notif-body"><div class="notif-title">Поступление средств</div><div class="notif-text">На счёт KZT зачислено ₸28 000 000. Отправитель: АО «Ромат». Назначение: Оплата по договору №145-2026.</div><div class="notif-time">Сегодня, 11:15</div></div></div>
+          <div class="notif-item"><div class="notif-ico" style="background:var(--gold-bg);">👤</div><div class="notif-body"><div class="notif-title">Новая заявка на регистрацию</div><div class="notif-text">Сотрудник Сейткали Мадияр Абайович подал заявку на регистрацию. ИИН: 020814500893. Требуется одобрение.</div><div class="notif-time">Вчера, 17:22</div></div><button class="btn btn-sm btn-success" style="flex-shrink:0;">Одобрить</button></div>
+          <div class="notif-item"><div class="notif-ico" style="background:var(--off);">📊</div><div class="notif-body"><div class="notif-title">Ежемесячный отчёт готов</div><div class="notif-text">Финансовый отчёт за февраль 2026 сформирован и доступен для скачивания в разделе «Аналитика».</div><div class="notif-time">01.03.2026, 08:00</div></div></div>
+        </div>
+      </div>
+
+      <!-- PANE: SETTINGS -->
+      <div class="dash-pane" id="pane-settings">
+        <div class="pane-title">Настройки</div>
+        <div class="pane-desc">Управление аккаунтом, безопасностью и уведомлениями.</div>
+        <div class="g2">
+          <div>
+            <div class="card mb2">
+              <div class="card-header"><span class="card-title">Профиль сотрудника</span></div>
+              <div class="card-body">
+                <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.5rem;">
+                  <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold2));display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:800;color:var(--navy);" id="settings-avatar">А</div>
+                  <div><div style="font-size:1rem;font-weight:700;color:var(--navy);" id="settings-name">Загрузка...</div><div class="badge badge-viewer mt1" id="settings-role-badge">Роль</div></div>
+                </div>
+                <div class="form-group"><label>Полное имя</label><input class="input" id="settings-fullname" value=""></div>
+                <div class="form-row">
+                  <div class="form-group"><label>ИИН</label><input class="input" id="settings-iin" value="850312300145" readonly style="background:var(--off);"></div>
+                  <div class="form-group"><label>Телефон</label><input class="input" id="settings-phone" value="+7 701 234 5678"></div>
+                </div>
+                <div class="form-group"><label>Email</label><input class="input" id="settings-email" type="email" value="s.aliev@kazprom.kz"></div>
+                <div class="form-group"><label>Должность</label><input class="input" id="settings-position" value=""></div>
+                <button class="btn btn-primary" onclick="showToast('success','Профиль обновлён','Данные сохранены успешно')">💾 Сохранить изменения</button>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="card mb2">
+              <div class="card-header"><span class="card-title">Безопасность</span></div>
+              <div class="card-body">
+                <div class="form-group"><label>Текущий пароль</label><input class="input" type="password" placeholder="••••••••"></div>
+                <div class="form-group"><label>Новый пароль</label><input class="input" type="password" placeholder="Минимум 8 символов"></div>
+                <div class="form-group"><label>Подтвердите пароль</label><input class="input" type="password" placeholder="Повторите пароль"></div>
+                <button class="btn btn-primary mb2" style="width:100%" onclick="showToast('success','Пароль изменён','Новый пароль активирован')">🔒 Изменить пароль</button>
+                <hr style="border:none;border-top:1px solid var(--light);margin:1rem 0;">
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <div><div style="font-size:0.88rem;font-weight:600;">SMS-подтверждение</div><div style="font-size:0.75rem;color:var(--muted);">Для входа и платежей</div></div>
+                  <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header"><span class="card-title">Уведомления</span></div>
+              <div class="card-body">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;"><div style="font-size:0.87rem;font-weight:600;">SMS при поступлении</div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;"><div style="font-size:0.87rem;font-weight:600;">Email-выписки</div><div class="toggle on" onclick="this.classList.toggle('on')"></div></div>
+                <div style="display:flex;justify-content:space-between;align-items:center;"><div style="font-size:0.87rem;font-weight:600;">Push-уведомления</div><div class="toggle" onclick="this.classList.toggle('on')"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANE: PROFILE -->
+      <div class="dash-pane" id="pane-profile">
+        <div class="pane-title">Мой профиль</div>
+        <div class="pane-desc">Личные данные, роль и история активности.</div>
+        <div class="g65">
+          <div class="card">
+            <div class="card-body">
+              <div style="display:flex;align-items:center;gap:1.5rem;margin-bottom:2rem;padding-bottom:1.5rem;border-bottom:1px solid var(--light);">
+                <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold2));display:flex;align-items:center;justify-content:center;font-size:2rem;font-weight:800;color:var(--navy);" id="profile-avatar-lg">А</div>
+                <div>
+                  <div style="font-family:var(--serif);font-size:1.3rem;font-weight:700;color:var(--navy);" id="profile-name-lg">...</div>
+                  <div style="font-size:0.85rem;color:var(--muted);margin-top:0.2rem;" id="profile-role-lg">...</div>
+                  <div style="margin-top:0.5rem;" id="profile-badge-lg"></div>
+                  <div id="profile-permissions" style="margin-top:1rem;color:var(--muted);font-size:0.9rem;"></div>
+                </div>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+                <div><div class="emp-info-lbl" style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;">ИИН</div><div style="font-size:0.9rem;font-weight:600;color:var(--navy);margin-top:0.2rem;">850312300145</div></div>
+                <div><div class="emp-info-lbl" style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;">Телефон</div><div style="font-size:0.9rem;font-weight:600;color:var(--navy);margin-top:0.2rem;">+7 701 234 5678</div></div>
+                <div><div class="emp-info-lbl" style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;">Email</div><div style="font-size:0.9rem;font-weight:600;color:var(--navy);margin-top:0.2rem;"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="88fba6e9e4e1edfec8e3e9f2f8fae7e5a6e3f2">[email&#160;protected]</a></div></div>
+                <div><div class="emp-info-lbl" style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;">Дата регистрации</div><div style="font-size:0.9rem;font-weight:600;color:var(--navy);margin-top:0.2rem;">15.01.2024</div></div>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="card mb2">
+              <div class="card-header"><span class="card-title">Мои права</span></div>
+              <div class="card-body" style="padding:0;" id="profile-perms"><!-- JS --></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANE: AUDIT -->
+      <div class="dash-pane" id="pane-audit">
+        <div class="pane-title">Журнал аудита</div>
+        <div class="pane-desc">Полная история всех действий сотрудников в системе.</div>
+        <div class="card">
+          <div class="card-header"><span class="card-title">Все события</span><button class="btn btn-sm btn-primary" onclick="showToast('info','Экспорт...','Журнал будет готов через несколько секунд')">📥 Экспорт</button></div>
+          <div class="tbl-wrap">
+            <table class="tbl">
+              <thead><tr><th>Дата / Время</th><th>Сотрудник</th><th>Действие</th><th>Объект</th><th>IP-адрес</th><th>Результат</th></tr></thead>
+              <tbody id="audit-table-body">
+                <tr><td colspan="6" style="text-align:center;color:var(--muted);padding:1rem;">Загрузка журнала аудита...</td></tr>
+                <tr><td>07.03.2026 11:20</td><td>Кенжебаева А. <span class="badge badge-findirector" style="font-size:0.55rem;">Фин.дир</span></td><td>Создание платежа</td><td>SWIFT-000124</td><td class="mono">95.56.18.207</td><td><span class="badge badge-pending" style="font-size:0.62rem;">⏳ Ожидает</span></td></tr>
+                <tr><td>07.03.2026 09:41</td><td>Алиев С.Н.</td><td>Вход в систему</td><td>—</td><td class="mono">178.88.42.156</td><td><span class="badge badge-active" style="font-size:0.62rem;">✓ Успех</span></td></tr>
+                <tr><td>06.03.2026 17:22</td><td>Тулегенов Б. <span class="badge badge-manager" style="font-size:0.55rem;">Рук-ль</span></td><td>Изменение роли</td><td>Жакупов Н.Р.</td><td class="mono">77.94.30.12</td><td><span class="badge badge-active" style="font-size:0.62rem;">✓ Успех</span></td></tr>
+                <tr><td>06.03.2026 15:45</td><td>Мухамедова Д. <span class="badge badge-accountant" style="font-size:0.55rem;">Бухг.</span></td><td>Зарплатная ведомость</td><td>ЗП-001200</td><td class="mono">92.47.88.31</td><td><span class="badge badge-active" style="font-size:0.62rem;">✓ Успех</span></td></tr>
+                <tr><td>06.03.2026 10:12</td><td>Неизвестно</td><td>Неудачный вход</td><td><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ceafaaa3a7a08eacafa0a5e0a5b4">[email&#160;protected]</a></td><td class="mono">185.220.101.45</td><td><span class="badge badge-blocked" style="font-size:0.62rem;">✗ Блок</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANE: COMPANY SETTINGS -->
+      <div class="dash-pane" id="pane-company">
+        <div class="pane-title">Настройки компании</div>
+        <div class="pane-desc">Управление реквизитами, лимитами и параметрами организации.</div>
+        <div class="g2">
+          <div class="card">
+            <div class="card-header"><span class="card-title">Реквизиты</span></div>
+            <div class="card-body">
+              <div class="form-group"><label>Наименование компании</label><input class="input" value="ТОО «КазПромХолдинг»"></div>
+              <div class="form-row"><div class="form-group"><label>БИН</label><input class="input" value="150740012847"></div><div class="form-group"><label>КБЕ</label><input class="input" value="17"></div></div>
+              <div class="form-group"><label>Юридический адрес</label><input class="input" value="г. Алматы, пр. Аль-Фараби, 77/7"></div>
+              <div class="form-row"><div class="form-group"><label>Телефон</label><input class="input" value="+7 (727) 321-45-67"></div><div class="form-group"><label>Email</label><input class="input" value="info@kazprom.kz"></div></div>
+              <button class="btn btn-primary" onclick="showToast('success','Сохранено','Реквизиты компании обновлены')">💾 Сохранить</button>
+            </div>
+          </div>
+          <div>
+            <div class="card mb2">
+              <div class="card-header"><span class="card-title">Лимиты платежей</span></div>
+              <div class="card-body">
+                <div class="form-group"><label>Бухгалтер — макс. платёж (KZT)</label><input class="input" type="number" value="5000000"></div>
+                <div class="form-group"><label>Фин. директор — без лимита от (KZT)</label><input class="input" type="number" value="10000000"></div>
+                <div class="form-group"><label>Суточный лимит компании (KZT)</label><input class="input" type="number" value="500000000"></div>
+                <button class="btn btn-primary" onclick="showToast('success','Лимиты обновлены','Новые ограничения активированы')">💾 Сохранить лимиты</button>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header"><span class="card-title">Подписанты</span></div>
+              <div class="card-body" style="padding:0;">
+                <div style="padding:0.9rem 1.25rem;border-bottom:1px solid var(--light);display:flex;align-items:center;gap:0.75rem;"><span>1️⃣</span><div style="flex:1"><div style="font-size:0.85rem;font-weight:700;">Алиев Серик Нурланович</div><div style="font-size:0.73rem;color:var(--muted);">Первая подпись</div></div><span class="badge badge-director">Директор</span></div>
+                <div style="padding:0.9rem 1.25rem;display:flex;align-items:center;gap:0.75rem;"><span>2️⃣</span><div style="flex:1"><div style="font-size:0.85rem;font-weight:700;">Кенжебаева Айгерим</div><div style="font-size:0.73rem;color:var(--muted);">Вторая подпись</div></div><span class="badge badge-findirector">Фин. директор</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- dash-content -->
+  </div><!-- dash-main -->
+</div><!-- screen-dashboard -->
+
+
+<!-- ================================================================
+     MODALS
+================================================================ -->
+
+<!-- LOGIN -->
+<div class="overlay" id="modal-login">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-login')">✕</button>
+    <div class="modal-logo"><div class="logo-mark" style="width:38px;height:38px;font-size:1.2rem;">Q</div><div class="logo-text"><div class="ln">QazCorpBank</div><div class="ls">Корпоративный вход</div></div></div>
+    <div class="modal-h">Вход в систему</div>
+    <div class="modal-sub">Введите ваш ИИН и пароль для доступа к корпоративному кабинету.</div>
+    <div class="form-group"><label>ИИН сотрудника <span class="req">*</span></label><div class="input-icon-wrap"><span class="i-icon">🪪</span><input class="input" id="login-iin" placeholder="123456789012" maxlength="12"></div></div>
+    <div class="form-group"><label>Пароль <span class="req">*</span></label><div class="input-icon-wrap"><span class="i-icon">🔒</span><input class="input" type="password" id="login-pass" placeholder="Введите пароль" onkeypress="if(event.key==='Enter')doLogin()"></div></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;"><label style="display:flex;align-items:center;gap:0.4rem;font-size:0.8rem;cursor:pointer;"><input type="checkbox" style="width:auto;">Запомнить</label><a href="#" style="font-size:0.8rem;color:var(--navy2);">Забыли пароль?</a></div>
+    <div class="alert alert-info" id="login-error" style="display:none;">❌ ИИН или пароль неверны. Попробуйте снова.</div>
+    <button class="btn btn-primary btn-full" onclick="doLogin()">🔐 Войти</button>
+    <div style="text-align:center;margin-top:1.25rem;font-size:0.82rem;color:var(--muted);">Нет аккаунта? <a href="#" onclick="closeModal('modal-login');startRegistration()" style="color:var(--navy2);font-weight:700;">Зарегистрироваться</a></div>
+  </div>
+</div>
+
+<!-- REGISTER STEP 1: IIN + PHONE -->
+<div class="overlay" id="modal-reg-step1">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-reg-step1')">✕</button>
+    <div class="modal-logo"><div class="logo-mark" style="width:38px;height:38px;font-size:1.2rem;">Q</div><div><div class="ln" style="font-size:1rem;font-weight:700;color:var(--navy);">QazCorpBank</div></div></div>
+    <div class="step-progress"><div class="sp-item active"></div><div class="sp-item"></div><div class="sp-item"></div><div class="sp-item"></div></div>
+    <div class="step-label">Шаг <strong>1 из 4</strong> — Персональные данные</div>
+    <div class="modal-h">Регистрация сотрудника</div>
+    <div class="modal-sub">Введите ваши данные для регистрации в корпоративном банке.</div>
+    <div class="form-group"><label>ИИН <span class="req">*</span></label><div class="input-icon-wrap"><span class="i-icon">🪪</span><input class="input" placeholder="Индивидуальный идентификационный номер" maxlength="12"></div><div class="input-hint">12-значный номер из удостоверения личности</div></div>
+    <div class="form-row">
+      <div class="form-group"><label>Фамилия <span class="req">*</span></label><input class="input" placeholder="Алиев"></div>
+      <div class="form-group"><label>Имя <span class="req">*</span></label><input class="input" placeholder="Серик"></div>
+    </div>
+    <div class="form-group"><label>Отчество</label><input class="input" placeholder="Нурланович"></div>
+    <div class="form-group"><label>Номер телефона <span class="req">*</span></label><div class="input-icon-wrap"><span class="i-icon">📱</span><input class="input" placeholder="+7 (___) ___ __ __" type="tel"></div></div>
+    <div class="form-group"><label>Должность в компании <span class="req">*</span></label><select class="input"><option value="">— Выберите должность —</option><option>Генеральный директор</option><option>Финансовый директор</option><option>Главный бухгалтер</option><option>Бухгалтер</option><option>Руководитель отдела</option><option>Финансовый менеджер</option><option>Прочее</option></select></div>
+    <div class="form-group"><label>БИН компании <span class="req">*</span></label><input class="input" placeholder="150740012847" maxlength="12"></div>
+    <button class="btn btn-primary btn-full" onclick="closeModal('modal-reg-step1');openModal('modal-reg-step2')">Далее →</button>
+  </div>
+</div>
+
+<!-- REGISTER STEP 2: OTP -->
+<div class="overlay" id="modal-reg-step2">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-reg-step2')">✕</button>
+    <div class="step-progress"><div class="sp-item done"></div><div class="sp-item active"></div><div class="sp-item"></div><div class="sp-item"></div></div>
+    <div class="step-label">Шаг <strong>2 из 4</strong> — Подтверждение телефона</div>
+    <div class="modal-h">SMS-верификация</div>
+    <div class="modal-sub">На ваш номер отправлен 6-значный код подтверждения.</div>
+    <div class="alert alert-info">📱 Отправлено на: +7 701 *** **78</div>
+    <div style="text-align:center;margin:1.5rem 0 0.5rem;font-size:0.85rem;color:var(--muted);">Введите код из SMS</div>
+    <div class="otp-row">
+      <input class="otp-input" maxlength="1" oninput="otpMove(this,1)">
+      <input class="otp-input" maxlength="1" oninput="otpMove(this,2)">
+      <input class="otp-input" maxlength="1" oninput="otpMove(this,3)">
+      <input class="otp-input" maxlength="1" oninput="otpMove(this,4)">
+      <input class="otp-input" maxlength="1" oninput="otpMove(this,5)">
+      <input class="otp-input" maxlength="1" oninput="otpMove(this,6)">
+    </div>
+    <div style="text-align:center;font-size:0.78rem;color:var(--muted);margin-bottom:1.5rem;">Не получили? <a href="#" style="color:var(--navy2);font-weight:700;">Отправить повторно</a> (через 58 сек)</div>
+    <button class="btn btn-primary btn-full" onclick="closeModal('modal-reg-step2');openModal('modal-reg-step3')">Подтвердить →</button>
+    <button class="btn btn-ghost btn-full" style="margin-top:0.5rem;" onclick="closeModal('modal-reg-step2');openModal('modal-reg-step1')">← Назад</button>
+  </div>
+</div>
+
+<!-- REGISTER STEP 3: DOCUMENT UPLOAD -->
+<div class="overlay" id="modal-reg-step3">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-reg-step3')">✕</button>
+    <div class="step-progress"><div class="sp-item done"></div><div class="sp-item done"></div><div class="sp-item active"></div><div class="sp-item"></div></div>
+    <div class="step-label">Шаг <strong>3 из 4</strong> — Документы</div>
+    <div class="modal-h">Загрузка документов</div>
+    <div class="modal-sub">Приложите фото документов для подтверждения личности.</div>
+    <div class="form-group">
+      <label>Удостоверение личности (лицевая сторона) <span class="req">*</span></label>
+      <div style="border:2px dashed var(--light);border-radius:10px;padding:1.5rem;text-align:center;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--navy)'" onmouseout="this.style.borderColor='var(--light)'">
+        <div style="font-size:2rem;margin-bottom:0.5rem;">📄</div>
+        <div style="font-size:0.83rem;color:var(--muted);">Нажмите или перетащите файл</div>
+        <div style="font-size:0.72rem;color:var(--muted);margin-top:0.25rem;">JPG, PNG, PDF до 10MB</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Удостоверение личности (обратная сторона) <span class="req">*</span></label>
+      <div style="border:2px dashed var(--light);border-radius:10px;padding:1.5rem;text-align:center;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--navy)'" onmouseout="this.style.borderColor='var(--light)'">
+        <div style="font-size:2rem;margin-bottom:0.5rem;">📄</div>
+        <div style="font-size:0.83rem;color:var(--muted);">Нажмите или перетащите файл</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Приказ о назначении на должность</label>
+      <div style="border:2px dashed var(--light);border-radius:10px;padding:1.5rem;text-align:center;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.borderColor='var(--navy)'" onmouseout="this.style.borderColor='var(--light)'">
+        <div style="font-size:2rem;margin-bottom:0.5rem;">📋</div>
+        <div style="font-size:0.83rem;color:var(--muted);">По усмотрению (рекомендуется)</div>
+      </div>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="closeModal('modal-reg-step3');openModal('modal-reg-step4')">Далее →</button>
+    <button class="btn btn-ghost btn-full" style="margin-top:0.5rem;" onclick="closeModal('modal-reg-step3');openModal('modal-reg-step2')">← Назад</button>
+  </div>
+</div>
+
+<!-- REGISTER STEP 4: CONFIRM -->
+<div class="overlay" id="modal-reg-step4">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-reg-step4')">✕</button>
+    <div class="step-progress"><div class="sp-item done"></div><div class="sp-item done"></div><div class="sp-item done"></div><div class="sp-item active"></div></div>
+    <div class="step-label">Шаг <strong>4 из 4</strong> — Подтверждение</div>
+    <div class="modal-h">Проверьте данные</div>
+    <div class="modal-sub">Убедитесь, что все данные заполнены верно, перед отправкой заявки.</div>
+    <div style="background:var(--off);border-radius:10px;padding:1.25rem;margin-bottom:1.25rem;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;">
+        <div><div style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;">ФИО</div><div style="font-size:0.88rem;font-weight:700;color:var(--navy);margin-top:0.2rem;">Алиев Серик Нурланович</div></div>
+        <div><div style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;">ИИН</div><div style="font-size:0.88rem;font-weight:700;color:var(--navy);margin-top:0.2rem;">850312300145</div></div>
+        <div><div style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;">Телефон</div><div style="font-size:0.88rem;font-weight:700;color:var(--navy);margin-top:0.2rem;">+7 701 234 5678</div></div>
+        <div><div style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;">Должность</div><div style="font-size:0.88rem;font-weight:700;color:var(--navy);margin-top:0.2rem;">Ген. директор</div></div>
+        <div><div style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;">Документы</div><div style="font-size:0.88rem;font-weight:700;color:var(--green);margin-top:0.2rem;">✓ Загружены</div></div>
+      </div>
+    </div>
+    <div class="form-group"><label style="display:flex;align-items:flex-start;gap:0.5rem;cursor:pointer;font-weight:400;"><input type="checkbox" style="width:auto;margin-top:0.2rem;">Я согласен с <a href="#" style="color:var(--navy2);font-weight:700;">Условиями обслуживания</a> и <a href="#" style="color:var(--navy2);font-weight:700;">Политикой конфиденциальности</a> QazCorpBank</label></div>
+    <button class="btn btn-gold btn-full" onclick="finishReg()">✓ Отправить заявку в банк</button>
+    <button class="btn btn-ghost btn-full" style="margin-top:0.5rem;" onclick="closeModal('modal-reg-step4');openModal('modal-reg-step3')">← Назад</button>
+  </div>
+</div>
+
+<!-- SET PASSWORD -->
+<div class="overlay" id="modal-set-password">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-set-password')">✕</button>
+    <div class="modal-logo"><div class="logo-mark" style="width:38px;height:38px;font-size:1.2rem;">Q</div></div>
+    <div class="modal-h">Создание пароля</div>
+    <div class="modal-sub">Банк подтвердил вашу заявку. Введите код из SMS и создайте пароль для входа.</div>
+    <div class="alert alert-success">✅ Аккаунт подтверждён банком!</div>
+    <div class="form-group"><label>Код активации из SMS <span class="req">*</span></label><input class="input" placeholder="6-значный код" maxlength="6"></div>
+    <div class="form-group"><label>Новый пароль <span class="req">*</span></label><input class="input" type="password" placeholder="Минимум 8 символов, цифры и буквы"></div>
+    <div class="form-group"><label>Подтвердите пароль <span class="req">*</span></label><input class="input" type="password" placeholder="Повторите пароль"></div>
+    <div class="alert alert-info">🔒 Требования: минимум 8 символов, заглавная буква, цифра, спецсимвол</div>
+    <button class="btn btn-primary btn-full" onclick="closeModal('modal-set-password');startLogin();showToast('success','Пароль создан','Теперь вы можете войти в систему')">✓ Активировать аккаунт</button>
+  </div>
+</div>
+
+<!-- EMPLOYEE PERMISSIONS -->
+<div class="overlay" id="modal-employee-perms">
+  <div class="modal modal-lg">
+    <button class="modal-close" onclick="closeModal('modal-employee-perms')">✕</button>
+    <div class="modal-h">Права доступа сотрудника</div>
+    <div class="modal-sub">Мухамедова Динара Сериковна · Главный бухгалтер</div>
+    <div class="alert alert-warning">⚠️ Все платежи бухгалтера требуют подтверждения Директора (учредителя)</div>
+    <div class="form-group"><label>Роль в системе</label><select class="input"><option>Бухгалтер</option><option>Финансовый директор</option><option>Руководитель</option><option>Финансовый менеджер</option><option>Директор</option></select></div>
+    <div class="form-group"><label>Лимит платежей (KZT, 0 = без лимита)</label><input class="input" type="number" value="0" placeholder="0 = без лимита (директор всё равно подтверждает)"></div>
+    <div style="overflow-x:auto;border-radius:10px;border:1px solid var(--light);">
+      <table class="perms-tbl">
+        <thead><tr><th>Права</th><th>Доступ</th><th>Лимит</th></tr></thead>
+        <tbody>
+          <tr><td>Просмотр баланса</td><td><div class="toggle on" onclick="this.classList.toggle('on')"></div></td><td>—</td></tr>
+          <tr><td>Выписки и история</td><td><div class="toggle on" onclick="this.classList.toggle('on')"></div></td><td>—</td></tr>
+          <tr><td>Создание платежей</td><td><div class="toggle on" onclick="this.classList.toggle('on')"></div></td><td>до ₸5M</td></tr>
+          <tr><td>Подтверждение платежей</td><td><div class="toggle" onclick="this.classList.toggle('on')"></div></td><td>—</td></tr>
+          <tr><td>Международные переводы (SWIFT)</td><td><div class="toggle" onclick="this.classList.toggle('on')"></div></td><td>Нет доступа</td></tr>
+          <tr><td>Управление сотрудниками</td><td><div class="toggle" onclick="this.classList.toggle('on')"></div></td><td>—</td></tr>
+          <tr><td>Аналитика</td><td><div class="toggle on" onclick="this.classList.toggle('on')"></div></td><td>—</td></tr>
+          <tr><td>Зарплатные ведомости</td><td><div class="toggle on" onclick="this.classList.toggle('on')"></div></td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="display:flex;gap:0.75rem;margin-top:1.5rem;">
+      <button class="btn btn-ghost btn-full" onclick="closeModal('modal-employee-perms')">Отмена</button>
+      <button class="btn btn-primary btn-full" onclick="closeModal('modal-employee-perms');showToast('success','Права обновлены','Изменения вступят в силу немедленно')">💾 Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD EMPLOYEE -->
+<div class="overlay" id="modal-add-employee">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modal-add-employee')">✕</button>
+    <div class="modal-h">Добавить сотрудника</div>
+    <div class="modal-sub">Пригласите сотрудника или найдите по ИИН для выдачи доступа.</div>
+    <div class="form-group"><label>ИИН сотрудника <span class="req">*</span></label><input class="input" placeholder="123456789012"></div>
+    <div class="form-row">
+      <div class="form-group"><label>Фамилия <span class="req">*</span></label><input class="input" placeholder="Фамилия"></div>
+      <div class="form-group"><label>Имя <span class="req">*</span></label><input class="input" placeholder="Имя"></div>
+    </div>
+    <div class="form-group"><label>Должность</label><input class="input" placeholder="Например: Бухгалтер"></div>
+    <div class="form-group"><label>Роль в системе <span class="req">*</span></label><select class="input"><option>— Выберите —</option><option>Бухгалтер</option><option>Финансовый менеджер</option><option>Руководитель</option><option>Финансовый директор</option></select></div>
+    <div class="form-group"><label>Телефон</label><input class="input" type="tel" placeholder="+7 (7xx) xxx xx xx"></div>
+    <div class="form-group"><label>Email</label><input class="input" type="email" placeholder="email@company.kz"></div>
+    <div class="alert alert-info">📧 Сотруднику будет отправлен SMS с инструкцией по регистрации.</div>
+    <button class="btn btn-primary btn-full" onclick="closeModal('modal-add-employee');showToast('success','Приглашение отправлено','Сотрудник получит SMS-уведомление')">Добавить сотрудника</button>
+  </div>
+</div>
+
+
+<!-- ================================================================
+     JAVASCRIPT
+================================================================ -->
+<script>
+// ── DATA ─────────────────────────────────────────────
+const ROLES = {
+  director: {
+    label: 'Директор', name: 'Алиев Серик Нурланович',
+    color: '#c9a84c', textColor: '#0c2340', initial: 'АС',
+    badgeClass: 'badge-director',
+    perms: { balances:true, statements:true, transfer:true, approve:true, swift:true, employees:true, roles:true, analytics:true, audit:true, company:true, salary:true },
+    nav: ['dashboard','transfer','statements','analytics','employees','audit','company','notifications','settings','profile']
+  },
+  manager: {
+    label: 'Руководитель', name: 'Тулегенов Бауыржан Асетович',
+    color: '#eaf1fb', textColor: '#1a3358', initial: 'ТБ',
+    badgeClass: 'badge-manager',
+    perms: { balances:true, statements:true, transfer:false, approve:false, swift:false, employees:true, roles:true, analytics:true, audit:true, company:false, salary:false },
+    nav: ['dashboard','statements','analytics','employees','audit','notifications','settings','profile']
+  },
+  findirector: {
+    label: 'Финансовый директор', name: 'Кенжебаева Айгерим Маратовна',
+    color: '#f0e6ff', textColor: '#6c00c8', initial: 'КА',
+    badgeClass: 'badge-findirector',
+    // Права: вся аналитика + все переводы без лимита + утверждение крупных платежей + выписки
+    perms: { balances:true, statements:true, transfer:true, approve:true, swift:true, employees:false, roles:false, analytics:true, audit:true, company:false, salary:true },
+    noLimit: true,
+    nav: ['dashboard','transfer','statements','analytics','audit','notifications','settings','profile']
+  },
+  accountant: {
+    label: 'Бухгалтер', name: 'Мухамедова Динара Сериковна',
+    color: '#e5f4ec', textColor: '#0d7c4a', initial: 'МД',
+    badgeClass: 'badge-accountant',
+    // Права: просмотр выписок + создание платежей (директор/учредитель подтверждает)
+    perms: { balances:true, statements:true, transfer:true, approve:false, swift:false, employees:false, roles:false, analytics:false, audit:false, company:false, salary:true },
+    requiresApproval: true,
+    nav: ['dashboard','transfer','statements','notifications','settings','profile']
+  },
+  finmanager: {
+    label: 'Фин. менеджер', name: 'Жакупов Нурлан Рашидович',
+    color: '#fef3eb', textColor: '#d35400', initial: 'НЖ',
+    badgeClass: 'badge-finmanager',
+    perms: { balances:true, statements:true, transfer:false, approve:false, swift:false, employees:false, roles:false, analytics:true, audit:false, company:false, salary:false },
+    nav: ['dashboard','statements','analytics','notifications','settings','profile']
+  }
+};
+
+const NAV_ITEMS = {
+  dashboard:     { label: 'Главная панель',      icon: '🏠', pane: 'pane-dashboard' },
+  transfer:      { label: 'Переводы и платежи',  icon: '💸', pane: 'pane-transfer' },
+  statements:    { label: 'Выписки и история',   icon: '📄', pane: 'pane-statements' },
+  analytics:     { label: 'Аналитика',           icon: '📊', pane: 'pane-analytics' },
+  employees:     { label: 'Сотрудники',          icon: '👥', pane: 'pane-employees', badge: 1 },
+  audit:         { label: 'Журнал аудита',       icon: '🔍', pane: 'pane-audit' },
+  company:       { label: 'Настройки компании',  icon: '🏢', pane: 'pane-company' },
+  notifications: { label: 'Уведомления',        icon: '🔔', pane: 'pane-notifications', badge: 3 },
+  settings:      { label: 'Настройки',           icon: '⚙️', pane: 'pane-settings' },
+  profile:       { label: 'Мой профиль',         icon: '👤', pane: 'pane-profile' },
+};
+
+const PERM_LABELS = {
+  balances:   '👁️ Просмотр балансов',
+  statements: '📄 Выписки и история',
+  transfer:   '💸 Создание платежей (на подтверждение)',
+  approve:    '✅ Утверждение и подтверждение платежей',
+  swift:      '🌍 Международные переводы (SWIFT/SEPA)',
+  employees:  '👥 Управление сотрудниками',
+  roles:      '🔑 Назначение и изменение ролей',
+  analytics:  '📊 Полная аналитика и отчёты',
+  audit:      '🔍 Журнал аудита',
+  company:    '🏢 Настройки компании',
+  salary:     '💰 Зарплатные ведомости'
+};
+
+const STATS_BY_ROLE = {
+  director: [
+    {label:'Общий баланс', value:'₸248.7M', change:'+4.2%', dir:'up', cls:'sc-navy', icon:'💰'},
+    {label:'Платежей сегодня', value:'12', change:'+3', dir:'up', cls:'sc-gold', icon:'💸'},
+    {label:'Ожидают одобрения', value:'3', change:'', dir:'', cls:'sc-red', icon:'⏳'},
+    {label:'Сотрудников', value:'24', change:'', dir:'', cls:'sc-green', icon:'👥'},
+  ],
+  findirector: [
+    {label:'Баланс KZT', value:'₸248.7M', change:'+4.2%', dir:'up', cls:'sc-navy', icon:'💰'},
+    {label:'Расходы (месяц)', value:'₸54.2M', change:'+5.1%', dir:'dn', cls:'sc-red', icon:'📉'},
+    {label:'На подтверждении', value:'3', change:'', dir:'', cls:'sc-gold', icon:'⏳'},
+    {label:'Доходы (месяц)', value:'₸87.4M', change:'+12.3%', dir:'up', cls:'sc-green', icon:'📈'},
+  ],
+  accountant: [
+    {label:'Баланс KZT', value:'₸248.7M', change:'', dir:'', cls:'sc-navy', icon:'💰'},
+    {label:'Платежей создано', value:'8', change:'+2', dir:'up', cls:'sc-gold', icon:'💸'},
+    {label:'Ожидают одобрения директора', value:'3', change:'', dir:'', cls:'sc-red', icon:'⏳'},
+    {label:'Зарплата (март)', value:'₸38.5M', change:'', dir:'', cls:'sc-green', icon:'👥'},
+  ],
+  manager: [
+    {label:'Сотрудников активных', value:'24', change:'+2', dir:'up', cls:'sc-green', icon:'👥'},
+    {label:'Заявок на рассмотрении', value:'2', change:'', dir:'', cls:'sc-gold', icon:'⏳'},
+    {label:'Баланс компании', value:'₸248.7M', change:'+4.2%', dir:'up', cls:'sc-navy', icon:'💰'},
+    {label:'Изменений ролей', value:'5', change:'', dir:'', cls:'sc-red', icon:'🔑'},
+  ],
+  finmanager: [
+    {label:'Баланс KZT', value:'₸248.7M', change:'', dir:'', cls:'sc-navy', icon:'💰'},
+    {label:'Доходы YTD', value:'₸1.24B', change:'+8.9%', dir:'up', cls:'sc-green', icon:'📈'},
+    {label:'Расходы YTD', value:'₸1.01B', change:'+6.2%', dir:'dn', cls:'sc-red', icon:'📉'},
+    {label:'Чистый поток', value:'₸33.2M', change:'+18.7%', dir:'up', cls:'sc-gold', icon:'💰'},
+  ]
+};
+
+const QA_BY_ROLE = {
+  director: [
+    {icon:'💸',label:'Перевод',desc:'Создать платёж',pane:'pane-transfer'},
+    {icon:'✅',label:'Одобрить',desc:'Ожидают подтверждения',pane:'pane-notifications'},
+    {icon:'👥',label:'Сотрудники',desc:'Управление',pane:'pane-employees'},
+    {icon:'📊',label:'Аналитика',desc:'Отчёты и статистика',pane:'pane-analytics'},
+  ],
+  findirector: [
+    {icon:'✅',label:'Одобрить',desc:'Подтвердить платёж',pane:'pane-notifications'},
+    {icon:'💸',label:'SWIFT',desc:'Международный перевод',pane:'pane-transfer'},
+    {icon:'📊',label:'Отчёты',desc:'Финансовая аналитика',pane:'pane-analytics'},
+    {icon:'📄',label:'Выписка',desc:'История операций',pane:'pane-statements'},
+  ],
+  accountant: [
+    {icon:'💸',label:'Новый платёж',desc:'Отправить на подтверждение',pane:'pane-transfer'},
+    {icon:'💰',label:'Зарплата',desc:'Создать ведомость',pane:'pane-transfer'},
+    {icon:'📄',label:'Выписка',desc:'Скачать историю',pane:'pane-statements'},
+    {icon:'🔔',label:'Уведомления',desc:'Статус платежей',pane:'pane-notifications'},
+  ],
+  manager: [
+    {icon:'👥',label:'Сотрудники',desc:'Управление',pane:'pane-employees'},
+    {icon:'🔑',label:'Роли',desc:'Назначить права',pane:'pane-employees'},
+    {icon:'🔍',label:'Аудит',desc:'Журнал действий',pane:'pane-audit'},
+    {icon:'📊',label:'Аналитика',desc:'Просмотр',pane:'pane-analytics'},
+  ],
+  finmanager: [
+    {icon:'📊',label:'Аналитика',desc:'Отчёты и графики',pane:'pane-analytics'},
+    {icon:'📄',label:'Выписка',desc:'История операций',pane:'pane-statements'},
+    {icon:'🔔',label:'Уведомления',desc:'Последние события',pane:'pane-notifications'},
+    {icon:'👤',label:'Профиль',desc:'Мои данные',pane:'pane-profile'},
+  ]
+};
+
+// ── STATE ────────────────────────────────────────────
+let currentRole = null;
+let currentPane = 'pane-dashboard';
+
+// ── SCREEN NAVIGATION ────────────────────────────────
+function goTo(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ── MODAL ────────────────────────────────────────────
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.overlay').forEach(o => {
+  o.addEventListener('click', e => { if(e.target === o) o.classList.remove('open'); });
+});
+
+// ── LOGIN ────────────────────────────────────────────
+function quickLogin(role) {
+  closeModal('modal-login');
+  setupDashboard(role);
+  goTo('screen-dashboard');
+}
+
+function doLogin() {
+  const iin = document.getElementById('login-iin').value.trim();
+  const pass = document.getElementById('login-pass').value;
+  document.getElementById('login-error').style.display = 'none';
+  if(iin.length < 12 || !pass) {
+    document.getElementById('login-error').style.display = 'flex';
+    return;
+  }
+  quickLogin('director');
+}
+
+// ── DASHBOARD SETUP ──────────────────────────────────
+function setupDashboard(roleKey) {
+  currentRole = roleKey;
+  const R = ROLES[roleKey];
+
+  // Sidebar user info
+  document.getElementById('sb-avatar').textContent = R.initial;
+  document.getElementById('sb-avatar').style.background = `linear-gradient(135deg, ${R.color}, ${R.color}cc)`;
+  document.getElementById('sb-avatar').style.color = R.textColor;
+  document.getElementById('sb-uname').textContent = R.name.split(' ')[0] + ' ' + R.name.split(' ')[1];
+  document.getElementById('sb-urole').textContent = R.label;
+
+  // Build sidebar nav
+  const nav = document.getElementById('sb-nav');
+  nav.innerHTML = '';
+  const sections = {
+    '': ['dashboard'],
+    'Финансы': ['transfer','statements','analytics'],
+    'Управление': ['employees','audit','company'],
+    'Прочее': ['notifications','settings','profile']
+  };
+  for(const [sec, keys] of Object.entries(sections)) {
+    if(sec) {
+      const lbl = document.createElement('div');
+      lbl.className = 'sb-section'; lbl.textContent = sec;
+      nav.appendChild(lbl);
+    }
+    keys.forEach(k => {
+      if(!R.nav.includes(k)) return;
+      const item = NAV_ITEMS[k];
+      const el = document.createElement('div');
+      el.className = 'sb-item';
+      el.dataset.pane = item.pane;
+      el.dataset.key = k;
+      el.innerHTML = `<span class="sb-item-ico">${item.icon}</span><span>${item.label}</span>` +
+        (item.badge ? `<span class="sb-item-badge">${item.badge}</span>` : '');
+      el.onclick = () => showPane(item.pane, k);
+      nav.appendChild(el);
+    });
+  }
+
+  // Welcome message
+  document.getElementById('dash-welcome-msg').textContent =
+    `Добро пожаловать, ${R.name.split(' ')[0]} ${R.name.split(' ')[2] || ''}! Роль: ${R.label}`;
+
+  // Stats
+  const stats = STATS_BY_ROLE[roleKey] || STATS_BY_ROLE.director;
+  const statsRow = document.getElementById('stats-row');
+  statsRow.innerHTML = stats.map(s => `
+    <div class="stat-card ${s.cls}">
+      <div class="stat-ico">${s.icon}</div>
+      <div class="stat-label">${s.label}</div>
+      <div class="stat-value">${s.value}</div>
+      ${s.change ? `<div class="stat-change ${s.dir === 'up' ? 'change-up':'change-dn'}">${s.dir==='up'?'▲':'▼'} ${s.change}</div>` : '<div style="height:1.1rem;"></div>'}
+    </div>`).join('');
+
+  // Quick actions
+  const qa = QA_BY_ROLE[roleKey] || QA_BY_ROLE.director;
+  const qaGrid = document.getElementById('qa-grid');
+  qaGrid.innerHTML = qa.map(a => `
+    <div class="qa-item" onclick="showPane('${a.pane}')">
+      <div class="qa-ico">${a.icon}</div>
+      <div class="qa-lbl">${a.label}</div>
+      <div class="qa-sub">${a.desc}</div>
+    </div>`).join('');
+
+  // Profile perms
+  const permsHtml = Object.entries(R.perms).map(([k,v]) => `
+    <div style="display:flex;align-items:center;gap:0.75rem;padding:0.75rem 1.25rem;border-bottom:1px solid var(--light);">
+      <span style="font-size:0.85rem;flex:1;">${PERM_LABELS[k]}</span>
+      <span class="${v ? 'badge badge-active':'badge badge-blocked'}" style="font-size:0.65rem;">${v?'✓ Есть доступ':'— Нет доступа'}</span>
+    </div>`).join('');
+  const ppEl = document.getElementById('profile-perms');
+  if(ppEl) ppEl.innerHTML = permsHtml + '<div style="height:0.5rem;"></div>';
+
+  // Profile page
+  document.getElementById('profile-avatar-lg').textContent = R.initial;
+  document.getElementById('profile-name-lg').textContent = R.name;
+  document.getElementById('profile-role-lg').textContent = R.label;
+  document.getElementById('profile-badge-lg').innerHTML = `<span class="badge ${R.badgeClass}">${R.label}</span>`;
+
+  // Settings
+  document.getElementById('settings-avatar').textContent = R.initial;
+  document.getElementById('settings-name').textContent = R.name;
+  document.getElementById('settings-fullname').value = R.name;
+  document.getElementById('settings-role-badge').className = 'badge ' + R.badgeClass;
+  document.getElementById('settings-role-badge').textContent = R.label;
+
+  // Show correct transfer alert based on role
+  const alertInfo = document.getElementById('transfer-alert-info');
+  const alertAcc = document.getElementById('transfer-alert-accountant');
+  if(alertInfo && alertAcc) {
+    if(roleKey === 'accountant') {
+      alertInfo.style.display = 'none';
+      alertAcc.style.display = 'flex';
+    } else if(roleKey === 'findirector') {
+      alertInfo.innerHTML = '✅ Финансовый директор: все переводы без лимита. Вы можете утверждать крупные платежи.';
+      alertInfo.className = 'alert alert-success';
+      alertAcc.style.display = 'none';
+    } else {
+      alertInfo.style.display = 'flex';
+      alertAcc.style.display = 'none';
+    }
+  }
+
+  // Active nav
+  setActiveNav('dashboard');
+  showPane('pane-dashboard', 'dashboard');
+}
+
+// ── PANE ─────────────────────────────────────────────
+function showPane(paneId, navKey) {
+  document.querySelectorAll('.dash-pane').forEach(p => p.classList.remove('active'));
+  const el = document.getElementById(paneId);
+  if(el) el.classList.add('active');
+  currentPane = paneId;
+  if(navKey) setActiveNav(navKey);
+  const item = navKey ? NAV_ITEMS[navKey] : Object.values(NAV_ITEMS).find(n => n.pane === paneId);
+  if(item) {
+    document.getElementById('crumb-active').textContent = item.label;
+  }
+}
+
+function setActiveNav(key) {
+  document.querySelectorAll('.sb-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.key === key);
+  });
+}
+
+function checkPerm(perm, paneId) {
+  if(!currentRole) return;
+  const R = ROLES[currentRole];
+  if(R.perms[perm]) {
+    const navKey = Object.keys(NAV_ITEMS).find(k => NAV_ITEMS[k].pane === paneId);
+    showPane(paneId, navKey);
+  } else {
+    showToast('error', 'Нет доступа', 'У вашей роли нет прав для этого действия');
+  }
+}
+
+function submitPayment() {
+  const R = ROLES[currentRole];
+  if(R && R.requiresApproval) {
+    showToast('success', 'Платёж создан', 'Отправлен на подтверждение Директора');
+    // Simulate adding to pending list
+    setTimeout(() => showToast('info', 'Уведомление', 'Директор получил запрос на подтверждение'), 1500);
+  } else if(currentRole === 'findirector') {
+    showToast('success', 'Платёж утверждён', 'Переводы без лимита: платёж исполнен');
+  } else {
+    showToast('success', 'Платёж отправлен', 'Операция выполнена успешно');
+  }
+}
+
+// ── LOGOUT ───────────────────────────────────────────
+function doLogout() {
+  currentRole = null;
+  goTo('screen-landing');
+}
+
+// ── REGISTRATION ─────────────────────────────────────
+function submitRegistration() {
+  resetRegistrationForm();
+  closeModal('modal-reg-step4');
+  goTo('screen-pending');
+}
+
+// ── BIOMETRIC ────────────────────────────────────────
+let bioState = {1: false, 2: false};
+function startBio(zoneId, progId, txtId, idx) {
+  if(bioState[idx]) return;
+  const zone = document.getElementById(zoneId);
+  const prog = document.getElementById(progId);
+  const fill = document.getElementById(zoneId.replace('bio-','bio-').replace(progId.split('-')[1],'') + '-fill');
+  const txt  = document.getElementById(txtId);
+  zone.classList.add('scanning');
+  prog.style.display = 'block';
+  let w = 0;
+  const interval = setInterval(() => {
+    w += 2;
+    const fillEl = prog.querySelector('.bio-progress-fill');
+    if(fillEl) fillEl.style.width = w + '%';
+    if(w >= 100) {
+      clearInterval(interval);
+      zone.classList.remove('scanning');
+      zone.classList.add('done');
+      txt.innerHTML = `<strong>${idx===1?'Лицо':'Отпечаток'} подтверждён ✓</strong>Идентификация прошла успешно`;
+      bioState[idx] = true;
+    }
+  }, 40);
+}
+
+// ── OTP ──────────────────────────────────────────────
+function otpMove(el, idx) {
+  el.classList.toggle('filled', el.value.length > 0);
+  if(el.value && el.parentNode.children[idx]) {
+    el.parentNode.children[idx].focus();
+  }
+}
+
+// ── TABS ─────────────────────────────────────────────
+function setTab(el, cls) {
+  el.closest('.' + cls + 's, .transfer-tabs, .chart-tabs').querySelectorAll('.' + cls).forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ── CLOCK ────────────────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2,'0');
+  const m = String(now.getMinutes()).padStart(2,'0');
+  const el = document.getElementById('dash-clock');
+  if(el) el.textContent = `${h}:${m}`;
+}
+setInterval(updateClock, 60000);
+updateClock();
+
+// ── TOAST ────────────────────────────────────────────
+function showToast(type, title, msg) {
+  // 1. Иконка типіне қарай таңдалады
+  const icons = { success:'✅', error:'❌', info:'ℹ️', warning:'⚠️' };
+
+  // 2. Контейнер табылады (HTML-де <div id="toast-container"> болуы керек)
+  const container = document.getElementById('toast-container');
+
+  // 3. Жаңа div жасалады
+  const toast = document.createElement('div');
+  toast.className = 'toast';
+
+  // 4. Ішіне иконка + тақырып + мәтін салынады
+  toast.innerHTML = `
+    <span class="toast-icon">${icons[type] || 'ℹ️'}</span>
+    <div class="toast-body">
+      <div class="toast-title">${title}</div>
+      <div class="toast-msg">${msg}</div>
+    </div>`;
+
+  container.appendChild(toast);
+
+  // 5. setTimeout — белгілі уақыттан кейін тостты жою (код кесілген)
+  setTimeout(() => { /* toast жойылады */ }, 3000);
+}
