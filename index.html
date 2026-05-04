@@ -386,10 +386,9 @@ select.input{cursor:pointer;}
 
 /* NOTIFICATIONS */
 .notif-list{display:flex;flex-direction:column;gap:0.75rem;}
-.employees-row{display:flex;flex-wrap:wrap;gap:1rem;}
-.payments-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1rem;}
-.employees-row .notif-item,
-.payments-row .notif-item{min-width:280px;flex:1 1 320px;}
+.employees-row{display:flex;flex-wrap:nowrap;gap:1rem;overflow-x:auto;padding-bottom:0.75rem;}
+.employees-row .notif-item{min-width:280px;flex-shrink:0;}
+.payments-row{display:contents;}
 .notif-item{display:flex;align-items:flex-start;gap:1rem;background:#fff;border:1px solid var(--light);border-radius:10px;padding:1rem;transition:all 0.2s;}
 .notif-item.unread{border-color:var(--navy2);background:var(--blue-bg);}
 .notif-ico{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;}
@@ -1102,10 +1101,11 @@ select.input{cursor:pointer;}
         </div>
         <div class="card">
           <div class="card-header"><span class="card-title">Платежи на одобрение</span></div>
-          <div class="card-body">
-            <div class="payments-row" id="payments-list">
-              <div style="text-align:center;padding:2rem;color:var(--muted);"><div class="loader" style="margin:0 auto;"></div></div>
-            </div>
+          <div class="tbl-wrap">
+            <table class="tbl">
+              <thead><tr><th>Дата</th><th>Сумма</th><th>Описание</th><th>От кого</th><th>Роль</th><th>Действие</th></tr></thead>
+              <tbody id="payments-list"><tr><td colspan="6" style="text-align:center;padding:2rem;"><div class="loader" style="margin:0 auto;"></div></td></tr></tbody>
+            </table>
           </div>
         </div>
       </div>
@@ -1997,27 +1997,20 @@ async function loadNotifications() {
 
     // Рендер платежей
     if (!payments.length) {
-      paymentsList.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted);">Нет платежей на одобрение</div>';
+      paymentsList.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:2rem;color:var(--muted);">Нет платежей на одобрение</td></tr>';
     } else {
       paymentsList.innerHTML = payments.map(n => {
         const notifId = n.id;
-        const payButtons = canApprovePayments
-          ? `<div style="display:flex;flex-direction:column;gap:0.5rem;flex-shrink:0;">
-               <button type="button" class="btn btn-sm btn-success" onclick="approvePaymentFromNotif('${notifId}')">✓ Одобрить</button>
-               <button type="button" class="btn btn-sm btn-danger" onclick="rejectPaymentFromNotif('${notifId}')">✗ Отменить</button>
-             </div>` : '';
+        const btnGroup = canApprovePayments
+          ? `<button type="button" class="btn btn-sm btn-success" onclick="approvePaymentFromNotif('${notifId}')" style="margin-right:0.25rem;">✓</button><button type="button" class="btn btn-sm btn-danger" onclick="rejectPaymentFromNotif('${notifId}')">✗</button>`
+          : '—';
 
-        return `
-          <div class="notif-item ${!n.is_read?'unread':''}" id="notif-${notifId}">
-            <div class="notif-ico" style="background:var(--orange-bg);">⚠️</div>
-            <div class="notif-body">
-              <div class="notif-title">${n.message||'Платёж на одобрение'}</div>
-              ${n.user ? `<div class="notif-text">${n.user.full_name} · ИИН: ${n.user.iin||'—'} · ${n.user.position||''}</div>` : ''}
-              <div class="notif-time">${new Date(n.created_at).toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div>
-            </div>
-            ${payButtons}
-          </div>
-        `;
+        const dateStr = new Date(n.created_at).toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+        const message = n.message||'Платёж';
+        const author = n.user?.full_name || '—';
+        const role = n.user?.position || '—';
+        
+        return `<tr id="notif-${notifId}"><td>${dateStr}</td><td class="amt-pos">+₸</td><td>${message}</td><td>${author}</td><td>${role}</td><td>${btnGroup}</td></tr>`;
       }).join('');
     }
 
@@ -2089,8 +2082,9 @@ async function rejectFromNotif(userId, notifId) {
     const r = await apiFetch('/employees/reject', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({userId}) });
     if (r.ok) {
       showToast('info','Отклонено','Заявка отклонена.');
-      document.getElementById('notif-' + notifId)?.remove();
-      loadNotifications();
+      const elem = document.getElementById('notif-' + notifId);
+      if (elem) elem.remove();
+      setTimeout(() => loadNotifications(), 500);
     }
   } catch {}
 }
@@ -2106,10 +2100,11 @@ async function approvePaymentFromNotif(notifId) {
     const d = await r.json().catch(() => ({}));
     if (r.ok) {
       showToast('success','✅ Платёж выполнен', d.message || 'Платёж подтверждён.');
-      document.getElementById('notif-' + notifId)?.remove();
-      loadNotifications();
+      const elem = document.getElementById('notif-' + notifId);
+      if (elem) elem.remove();
       loadAccounts();
       loadDashStats();
+      setTimeout(() => loadNotifications(), 500);
     } else {
       showToast('error','Ошибка', d.error || 'Не удалось подтвердить платёж.');
     }
@@ -2129,10 +2124,11 @@ async function rejectPaymentFromNotif(notifId) {
     const d = await r.json().catch(() => ({}));
     if (r.ok) {
       showToast('success','✗ Платёж отменён', d.message || 'Платёж отменён.');
-      document.getElementById('notif-' + notifId)?.remove();
-      loadNotifications();
+      const elem = document.getElementById('notif-' + notifId);
+      if (elem) elem.remove();
       loadAccounts();
       loadDashStats();
+      setTimeout(() => loadNotifications(), 500);
     } else {
       showToast('error','Ошибка', d.error || 'Не удалось отменить платёж.');
     }
