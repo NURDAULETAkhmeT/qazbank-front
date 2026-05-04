@@ -2005,6 +2005,8 @@ async function loadNotifications() {
           ? `<div style="display:flex;flex-direction:column;gap:0.5rem;flex-shrink:0;">
                <button type="button" class="btn btn-sm btn-success" onclick="approvePaymentFromNotif('${notifId}')">✓ Одобрить</button>
                <button type="button" class="btn btn-sm btn-danger" onclick="rejectPaymentFromNotif('${notifId}')">✗ Отменить</button>
+             </div>` : '';
+
         return `
           <div class="notif-item ${!n.is_read?'unread':''}" id="notif-${notifId}">
             <div class="notif-ico" style="background:var(--orange-bg);">⚠️</div>
