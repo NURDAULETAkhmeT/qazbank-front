@@ -1088,8 +1088,25 @@ select.input{cursor:pointer;}
           <button class="btn btn-primary btn-sm" id="btn-read-all" onclick="markAllRead()" style="display:none;">✓ Прочитать все</button>
           <button class="btn btn-ghost btn-sm" onclick="loadNotifications()">🔄 Обновить</button>
         </div>
-        <div class="notif-list" id="notif-list">
-          <div style="text-align:center;padding:3rem;color:var(--muted);"><div class="loader" style="margin:0 auto;"></div></div>
+        <div class="g2">
+          <!-- Платежи -->
+          <div class="card">
+            <div class="card-header"><span class="card-title">Платежи на одобрение</span></div>
+            <div class="card-body">
+              <div class="notif-list" id="payments-list">
+                <div style="text-align:center;padding:2rem;color:var(--muted);"><div class="loader" style="margin:0 auto;"></div></div>
+              </div>
+            </div>
+          </div>
+          <!-- Запросы сотрудников -->
+          <div class="card">
+            <div class="card-header"><span class="card-title">Запросы на регистрацию</span></div>
+            <div class="card-body">
+              <div class="notif-list" id="employees-list">
+                <div style="text-align:center;padding:2rem;color:var(--muted);"><div class="loader" style="margin:0 auto;"></div></div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1955,8 +1972,10 @@ async function rejectEmployee(id, name) {
    NOTIFICATIONS
 ============================================================ */
 async function loadNotifications() {
-  const list = document.getElementById('notif-list');
-  list.innerHTML = '<div style="text-align:center;padding:3rem;"><div class="loader" style="margin:0 auto;"></div></div>';
+  const paymentsList = document.getElementById('payments-list');
+  const employeesList = document.getElementById('employees-list');
+  paymentsList.innerHTML = '<div style="text-align:center;padding:2rem;"><div class="loader" style="margin:0 auto;"></div></div>';
+  employeesList.innerHTML = '<div style="text-align:center;padding:2rem;"><div class="loader" style="margin:0 auto;"></div></div>';
   try {
     const r = await apiFetch('/notifications');
     if (!r.ok) return;
@@ -1967,10 +1986,8 @@ async function loadNotifications() {
     const readAllBtn = document.getElementById('btn-read-all');
     if (readAllBtn) readAllBtn.style.display = unread > 0 ? '' : 'none';
 
-    if (!notifs.length) { list.innerHTML = '<div style="text-align:center;padding:3rem;color:var(--muted);">Уведомлений нет</div>'; return; }
-
-    const ICONS = { NEW_EMPLOYEE_REQUEST:'👤', PAYMENT_PENDING:'⚠️', PAYMENT_RECEIVED:'✅', SYSTEM:'🔔' };
-    const BG = { NEW_EMPLOYEE_REQUEST:'var(--gold-bg)', PAYMENT_PENDING:'var(--orange-bg)', PAYMENT_RECEIVED:'var(--green-bg)', SYSTEM:'var(--blue-bg)' };
+    const payments = notifs.filter(n => n.type === 'PAYMENT_PENDING');
+    const employees = notifs.filter(n => n.type === 'NEW_EMPLOYEE_REQUEST');
 
     // Текущая роль пользователя для показа кнопок
     const currentUser = getStoredUser();
@@ -1978,40 +1995,61 @@ async function loadNotifications() {
     const canApproveEmployees = ['director', 'manager'].includes(currentRole);
     const canApprovePayments  = ['director', 'findirector'].includes(currentRole);
 
-    list.innerHTML = notifs.map(n => {
-      // Для PAYMENT_PENDING: paymentId приходит в action_payload.notificationId
-      // или нужно искать платёж отдельно — передаём n.id как notificationId
-      // и на сервере ищем платёж по нему
-      const payId = n.action_payload?.paymentId || null;
-      const notifId = n.id;
+    // Рендер платежей
+    if (!payments.length) {
+      paymentsList.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted);">Нет платежей на одобрение</div>';
+    } else {
+      paymentsList.innerHTML = payments.map(n => {
+        const notifId = n.id;
+        const payButtons = canApprovePayments
+          ? `<div style="display:flex;flex-direction:column;gap:0.5rem;flex-shrink:0;">
+               <button class="btn btn-sm btn-success" onclick="approvePaymentFromNotif('${notifId}')">✓ Одобрить</button>
+               <button class="btn btn-sm btn-danger" onclick="rejectPaymentFromNotif('${notifId}')">✗ Отменить</button>
+             </div>` : '';
 
-      const empButtons = (n.type==='NEW_EMPLOYEE_REQUEST' && n.action_payload?.userId && canApproveEmployees)
-        ? `<div style="display:flex;flex-direction:column;gap:0.5rem;flex-shrink:0;">
-             <button class="btn btn-sm btn-success" onclick="approveFromNotif('${n.action_payload.userId}','${notifId}')">✓ Одобрить</button>
-             <button class="btn btn-sm btn-danger"  onclick="rejectFromNotif('${n.action_payload.userId}','${notifId}')">✗ Отклонить</button>
-           </div>` : '';
-
-      const payButton = (n.type==='PAYMENT_PENDING' && canApprovePayments)
-        ? `<button class="btn btn-sm btn-success" onclick="approvePaymentFromNotif('${notifId}')">✓ Подтвердить</button>` : '';
-
-      const readButton = !n.is_read
-        ? `<button class="btn btn-sm btn-ghost" onclick="markRead('${notifId}')">Прочитано</button>` : '';
-
-      return `
-        <div class="notif-item ${!n.is_read?'unread':''}" id="notif-${notifId}">
-          <div class="notif-ico" style="background:${BG[n.type]||'var(--blue-bg)'};">${ICONS[n.type]||'🔔'}</div>
-          <div class="notif-body">
-            <div class="notif-title">${n.message||'Уведомление'}</div>
-            ${n.user ? `<div class="notif-text">${n.user.full_name} · ИИН: ${n.user.iin||'—'} · ${n.user.position||''}</div>` : ''}
-            <div class="notif-time">${new Date(n.created_at).toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div>
+        return `
+          <div class="notif-item ${!n.is_read?'unread':''}" id="notif-${notifId}">
+            <div class="notif-ico" style="background:var(--orange-bg);">⚠️</div>
+            <div class="notif-body">
+              <div class="notif-title">${n.message||'Платёж на одобрение'}</div>
+              ${n.user ? `<div class="notif-text">${n.user.full_name} · ИИН: ${n.user.iin||'—'} · ${n.user.position||''}</div>` : ''}
+              <div class="notif-time">${new Date(n.created_at).toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div>
+            </div>
+            ${payButtons}
           </div>
-          ${empButtons}
-          ${payButton}
-          ${readButton}
-        </div>
-      `;
-    }).join('');
-  } catch { list.innerHTML = '<div style="color:var(--red);padding:1rem;">Ошибка загрузки</div>'; }
+        `;
+      }).join('');
+    }
+
+    // Рендер сотрудников
+    if (!employees.length) {
+      employeesList.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--muted);">Нет запросов на регистрацию</div>';
+    } else {
+      employeesList.innerHTML = employees.map(n => {
+        const notifId = n.id;
+        const empButtons = (n.action_payload?.userId && canApproveEmployees)
+          ? `<div style="display:flex;flex-direction:column;gap:0.5rem;flex-shrink:0;">
+               <button class="btn btn-sm btn-success" onclick="approveFromNotif('${n.action_payload.userId}','${notifId}')">✓ Одобрить</button>
+               <button class="btn btn-sm btn-danger"  onclick="rejectFromNotif('${n.action_payload.userId}','${notifId}')">✗ Отклонить</button>
+             </div>` : '';
+
+        return `
+          <div class="notif-item ${!n.is_read?'unread':''}" id="notif-${notifId}">
+            <div class="notif-ico" style="background:var(--gold-bg);">👤</div>
+            <div class="notif-body">
+              <div class="notif-title">${n.message||'Запрос на регистрацию'}</div>
+              ${n.user ? `<div class="notif-text">${n.user.full_name} · ИИН: ${n.user.iin||'—'} · ${n.user.position||''}</div>` : ''}
+              <div class="notif-time">${new Date(n.created_at).toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div>
+            </div>
+            ${empButtons}
+          </div>
+        `;
+      }).join('');
+    }
+  } catch {
+    paymentsList.innerHTML = '<div style="color:var(--red);padding:1rem;">Ошибка загрузки</div>';
+    employeesList.innerHTML = '<div style="color:var(--red);padding:1rem;">Ошибка загрузки</div>';
+  }
 }
 
 async function loadNotificationsBadge() {
@@ -2055,35 +2093,42 @@ async function rejectFromNotif(userId, notifId) {
 
 async function approvePaymentFromNotif(notifId) {
   try {
-    showToast('info', '⏳ Обработка...', 'Ищем платёж для подтверждения');
-    // Сначала получаем список pending платежей чтобы найти реальный paymentId
-    const rPays = await apiFetch('/payments?status=pending');
-    if (!rPays.ok) { showToast('error','Ошибка','Не удалось получить список платежей.'); return; }
-    const pays = await rPays.json();
-    const pendingList = Array.isArray(pays) ? pays : (pays.payments || pays.data || []);
-
-    if (!pendingList.length) {
-      showToast('error','Нет платежей','Нет платежей, ожидающих подтверждения.');
-      return;
-    }
-
-    // Ищем по notification_id или берём первый pending
-    const target = pendingList.find(p => String(p.notification_id) === String(notifId)) || pendingList[0];
-    const paymentId = target.id;
-
+    showToast('info', '⏳ Обработка...', 'Подтверждаем платёж');
     const r = await apiFetch('/payments/approve', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ paymentId })
+      body: JSON.stringify({ paymentId: notifId })
     });
     const d = await r.json().catch(() => ({}));
     if (r.ok) {
-      showToast('success','✅ Платёж выполнен', d.message || ('Платёж на ' + fmt(target.amount) + ' ' + target.currency + ' подтверждён.'));
+      showToast('success','✅ Платёж выполнен', d.message || 'Платёж подтверждён.');
       loadNotifications();
       loadAccounts();
       loadDashStats();
     } else {
       showToast('error','Ошибка', d.error || 'Не удалось подтвердить платёж.');
+    }
+  } catch(e) {
+    showToast('error','Ошибка','Сервер недоступен.');
+  }
+}
+
+async function rejectPaymentFromNotif(notifId) {
+  try {
+    showToast('info', '⏳ Обработка...', 'Отменяем платёж');
+    const r = await apiFetch('/payments/reject', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ paymentId: notifId })
+    });
+    const d = await r.json().catch(() => ({}));
+    if (r.ok) {
+      showToast('success','✗ Платёж отменён', d.message || 'Платёж отменён.');
+      loadNotifications();
+      loadAccounts();
+      loadDashStats();
+    } else {
+      showToast('error','Ошибка', d.error || 'Не удалось отменить платёж.');
     }
   } catch(e) {
     showToast('error','Ошибка','Сервер недоступен.');
